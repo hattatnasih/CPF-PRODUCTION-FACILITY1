@@ -1,0 +1,19 @@
+{
+  "name": "north-field-cpf-trainer",
+  "version": "1.0.0",
+  "private": true,
+  "description": "North Field CPF Trainer",
+  "scripts": {
+    "test": "node scripts/headless_test.js www/js/engine.js",
+    "sync": "cap sync",
+    "apk": "bash scripts/build_apk.sh"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.0.0",
+    "@capacitor/core": "^7.0.0",
+    "@capacitor/ios": "^7.6.10"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.0.0"
+  }
+}

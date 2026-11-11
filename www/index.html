@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=5">
+<meta name="theme-color" content="#0b1118">
+<meta name="mobile-web-app-capable" content="yes">
+<title>North Field CPF Trainer</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header id="topbar">
+  <div class="r1">
+    <div class="brand"><b id="facName">CPF</b><span id="clock">00:00:00</span></div>
+    <div class="speed" id="speed"></div>
+    <button id="btnPause" class="ico" aria-label="Pause">❚❚</button>
+    <button id="btnMute" class="ico" aria-label="Alarm sound">🔔</button>
+    <div id="esdBadge" class="esd ok">ESD OK</div>
+  </div>
+  <button id="alarmBanner" class="banner ok"><span id="alarmText">No active alarms</span></button>
+</header>
+
+<main id="views">
+  <section id="v-overview" class="view active">
+    <div class="zoombar"><button id="zOut">−</button><button id="zIn">+</button><b id="ownerTag" class="owner"></b><span class="hint">Tap equipment · pinch or +/− to zoom</span></div>
+    <div id="areaBar"></div>
+    <div id="mimicWrap"><svg id="mimic" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1900 1000"></svg></div>
+  </section>
+  <section id="v-control" class="view"><div id="controlList"></div></section>
+  <section id="v-alarms" class="view"><div id="alarmView"></div></section>
+  <section id="v-trends" class="view"><div id="trendView"></div></section>
+  <section id="v-safety" class="view"><div id="safetyView"></div></section>
+  <section id="v-train" class="view"><div id="trainView"></div></section>
+</main>
+
+<nav id="tabs">
+  <button data-v="overview" class="on"><i>▦</i>Overview</button>
+  <button data-v="control"><i>⚙</i>Control</button>
+  <button data-v="alarms"><i>⚠</i>Alarms<em id="tabAlarmCnt"></em></button>
+  <button data-v="trends"><i>〰</i>Trends</button>
+  <button data-v="safety"><i>⛔</i>Safety</button>
+  <button data-v="train"><i>🎓</i>Train</button>
+</nav>
+
+<div id="sheet" class="sheet hidden"><div class="sheetBox"><div class="sheetHead"><b id="sheetTitle"></b><button id="sheetClose" class="ico">✕</button></div><div id="sheetBody"></div></div></div>
+<div id="toast" class="toast hidden"></div>
+<div id="modal" class="modal hidden"><div class="modalBox" id="modalBox"></div></div>
+
+<script src="js/engine.js"></script>
+<script src="js/config.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
