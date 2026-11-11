@@ -40,39 +40,52 @@
     'V-101':  { title: 'V-101 1st stage separator', tags: ['LT-101', 'LI-102', 'PT-101', 'TT-106'], loops: ['LIC-101', 'LIC-102', 'PIC-101'], special: 'drain:DR-101' },
     'E-102':  { title: 'E-102 hot-oil exchanger (HX-2)', tags: ['TT-106', 'TT-103', 'TT-101'], loops: ['TIC-103'] },
     'V-102':  { title: 'V-102 heater treater', tags: ['LT-103', 'LI-104', 'TT-102', 'PT-102', 'AT-103'], equip: ['E-103'], loops: ['TIC-102', 'LIC-103', 'LIC-104', 'PIC-102'], special: 'dem', drain: 'DR-102' },
-    'P-101A': { title: 'P-101A transfer pump', tags: ['LT-103'], equip: ['P-101A'], special: 'auto:P-101' },
-    'P-101B': { title: 'P-101B transfer pump', tags: ['LT-103'], equip: ['P-101B'], special: 'auto:P-101' },
+    'P-101A': { title: 'P-101A transfer pump', tags: ['LT-103', 'VT-101A'], equip: ['P-101A'], special: 'auto:P-101' },
+    'P-101B': { title: 'P-101B transfer pump', tags: ['LT-103', 'VT-101B'], equip: ['P-101B'], special: 'auto:P-101' },
     'MF-2':   { title: 'MF-2 discharge manifold & bypasses', tags: ['TT-102', 'AT-103'], special: 'mf2' },
     'C-101':  { title: 'C-101 stripping column & E-104 reboiler', tags: ['LT-105', 'PT-104', 'TT-104', 'AT-102'], loops: ['TIC-104', 'LIC-105', 'PIC-104'] },
     'HO-1':   { title: 'HO-1 hot oil heater', tags: ['TT-101'], equip: ['HO-1'], loops: ['TIC-101'] },
     'E-105':  { title: 'E-105 oil cooler (air fin)', tags: ['TT-107', 'TT-105'], loops: ['TIC-105'] },
     'V-103':  { title: 'V-103 2nd stage separator', tags: ['LT-106', 'LI-107', 'PT-103', 'AT-101', 'AT-102'], loops: ['LIC-106', 'LIC-107', 'PIC-103'], special: 'drain:DR-103' },
     'T-101':  { title: 'T-101 storage tank', tags: ['LT-201', 'AT-201', 'FT-201'], loops: ['FIC-201'], special: 'route' },
-    'P-201A': { title: 'P-201A export pump', tags: ['FT-201', 'LT-201'], equip: ['P-201A'], special: 'auto:P-201' },
-    'P-201B': { title: 'P-201B export pump', tags: ['FT-201', 'LT-201'], equip: ['P-201B'], special: 'auto:P-201' },
+    'P-201A': { title: 'P-201A export pump', tags: ['FT-201', 'LT-201', 'VT-201A'], equip: ['P-201A'], special: 'auto:P-201' },
+    'P-201B': { title: 'P-201B export pump', tags: ['FT-201', 'LT-201', 'VT-201B'], equip: ['P-201B'], special: 'auto:P-201' },
     'T-102':  { title: 'T-102 slop tank', tags: ['LT-202'], equip: ['P-501'] },
     'T-301':  { title: 'T-301 produced water tank', tags: ['LT-301', 'AT-301', 'FT-301'], loops: ['LIC-301'] },
-    'P-301A': { title: 'P-301A disposal pump', tags: ['LT-301', 'FT-301'], equip: ['P-301A'], special: 'auto:P-301' },
-    'P-301B': { title: 'P-301B disposal pump', tags: ['LT-301', 'FT-301'], equip: ['P-301B'], special: 'auto:P-301' },
+    'P-301A': { title: 'P-301A disposal pump', tags: ['LT-301', 'FT-301', 'VT-301A'], equip: ['P-301A'], special: 'auto:P-301' },
+    'P-301B': { title: 'P-301B disposal pump', tags: ['LT-301', 'FT-301', 'VT-301B'], equip: ['P-301B'], special: 'auto:P-301' },
     'V-401':  { title: 'V-401 flare knock-out drum (FKOD)', tags: ['PT-401', 'LT-401', 'FT-401'], loops: ['LIC-401'], special: 'auto:P-401' },
-    'P-401A': { title: 'P-401A FKOD pump', tags: ['LT-401'], equip: ['P-401A'], special: 'auto:P-401' },
-    'P-401B': { title: 'P-401B FKOD pump', tags: ['LT-401'], equip: ['P-401B'], special: 'auto:P-401' },
+    'P-401A': { title: 'P-401A FKOD pump', tags: ['LT-401', 'VT-401A'], equip: ['P-401A'], special: 'auto:P-401' },
+    'P-401B': { title: 'P-401B FKOD pump', tags: ['LT-401', 'VT-401B'], equip: ['P-401B'], special: 'auto:P-401' },
     'FLARE':  { title: 'FL-401 flare stack', tags: ['PT-401', 'FT-401'], special: 'flare' },
-    'UTIL':   { title: 'Utilities', tags: ['PT-901'], special: 'util' }
+    'UTIL':   { title: 'Utilities & ambient', tags: ['PT-901', 'TT-900'], special: 'util' },
+    'LACT':   { title: 'LACT custody-transfer skid', tags: ['FT-202', 'AT-202', 'QT-202', 'FT-201'], special: 'lact' },
+    'FUELGAS': { title: 'Fuel gas header & flare purge', tags: ['PT-902', 'FT-402', 'LT-402'], special: 'fuel' },
+    'WTRT':   { title: 'Produced water treatment (hydrocyclone)', tags: ['AT-300', 'AT-301', 'FT-301', 'LT-301'], special: 'wtrt' },
+    'CHEM':   { title: 'Chemical injection', tags: ['AT-501'], special: 'chem' },
+    'POWER':  { title: 'Power generation G-1 / G-2 / G-3', tags: ['JT-901', 'JI-901'], equip: ['G-1', 'G-2', 'G-3'], special: 'power' }
   };
-  var EQ_NAME = { 'HO-1': 'HO-1 hot oil heater (30 s purge)', 'E-103': 'E-103 heater treater burner (30 s purge)', 'P-501': 'P-501 slop pump (return to SC-101)' };
+  var EQ_NAME = { 'G-1': 'G-1 generator (60 s run-up)', 'G-2': 'G-2 generator (60 s run-up)', 'G-3': 'G-3 standby generator (60 s run-up)', 'HO-1': 'HO-1 hot oil heater (30 s purge)', 'E-103': 'E-103 heater treater burner (30 s purge)', 'P-501': 'P-501 slop pump (return to SC-101)' };
   var TAG_EQ = { 'PT-000': 'WELLS', 'TT-000': 'WELLS', 'FT-001': 'WELLS', 'LT-001': 'SC-101', 'LI-002': 'SC-101', 'PT-001': 'SC-101', 'TT-001': 'SC-101', 'TT-106': 'E-101', 'TT-107': 'E-101',
     'LT-101': 'V-101', 'LI-102': 'V-101', 'PT-101': 'V-101', 'TT-103': 'E-102', 'TT-101': 'HO-1', 'TT-102': 'V-102', 'LT-103': 'V-102', 'LI-104': 'V-102', 'PT-102': 'V-102', 'AT-103': 'V-102',
     'LT-105': 'C-101', 'PT-104': 'C-101', 'TT-104': 'C-101', 'AT-102': 'C-101', 'TT-105': 'E-105', 'LT-106': 'V-103', 'LI-107': 'V-103', 'PT-103': 'V-103', 'AT-101': 'V-103',
     'PT-401': 'V-401', 'LT-401': 'V-401', 'FT-401': 'FLARE', 'LT-201': 'T-101', 'AT-201': 'T-101', 'FT-201': 'T-101', 'LT-202': 'T-102', 'LT-301': 'T-301', 'AT-301': 'T-301', 'FT-301': 'T-301', 'PT-901': 'UTIL' };
+  var TAG_EQ2 = { 'PT-902': 'FUELGAS', 'FT-402': 'FUELGAS', 'LT-402': 'FLARE', 'AT-202': 'LACT', 'FT-202': 'LACT', 'QT-202': 'LACT', 'AT-501': 'CHEM', 'AT-300': 'WTRT', 'JT-901': 'POWER', 'JI-901': 'POWER', 'TT-900': 'UTIL', 'FT-T1': 'WELLS', 'AT-T1': 'WELLS' };
+  for (var tk2 in TAG_EQ2) TAG_EQ[tk2] = TAG_EQ2[tk2];
+  ['101A', '101B', '201A', '201B', '301A', '301B', '401A', '401B'].forEach(function (n) { TAG_EQ['VT-' + n] = 'P-' + n; });
   var ALM_EQ = {};
   plant.ALARM_DEFS.forEach(function (d) { ALM_EQ[d[0]] = TAG_EQ[d[2]]; });
   ['P-101A', 'P-101B', 'P-201A', 'P-201B', 'P-301A', 'P-401A'].forEach(function (p) { ALM_EQ[p + ' TRIP'] = p; });
+  ['P-301B', 'P-401B', 'P-201B'].forEach(function (p) { ALM_EQ[p + ' TRIP'] = p; });
+  ['G-1 TRIP', 'G-2 TRIP', 'G-3 TRIP', 'LOAD SHED', 'POWER OVERLOAD'].forEach(function (a) { ALM_EQ[a] = 'POWER'; });
+  ['LACT DIVERT', 'LACT PROVE DUE', 'LACT SAMPLER FULL'].forEach(function (a) { ALM_EQ[a] = 'LACT'; });
+  ['101A', '101B', '201A', '201B', '301A', '301B', '401A', '401B'].forEach(function (n) { ALM_EQ['SEAL ' + n] = 'P-' + n; });
+  ALM_EQ['SEAL 501'] = 'T-102';
   ALM_EQ['HO-1 TRIP'] = 'HO-1'; ALM_EQ['E-103 TRIP'] = 'V-102'; ALM_EQ['PILOT OUT'] = 'FLARE'; ALM_EQ['PSV OPEN'] = 'SC-101'; ALM_EQ['POWER FAIL'] = 'UTIL';
 
   var AREAS = [
     ['Overview', 0, 0, VBW, VBH], ['Wells & SC', 0, 20, 600, 520], ['Separation', 560, 20, 460, 520], ['Treater', 980, 20, 460, 500], ['Stripping', 1380, 20, 520, 620],
-    ['Flare', 1560, 20, 340, 330], ['Cooling', 470, 500, 600, 320], ['Storage', 1060, 500, 680, 480], ['Water', 0, 420, 520, 580], ['Slop', 1050, 740, 500, 260]
+    ['Flare', 1560, 20, 340, 330], ['Cooling', 470, 500, 600, 320], ['Storage', 1060, 500, 680, 480], ['Water', 0, 420, 520, 580], ['Slop', 1050, 740, 500, 260], ['Packages', 420, 830, 740, 170], ['Export & LACT', 1380, 560, 520, 440]
   ];
 
   // ------------------------------------------------------------------ mimic (SVG)
@@ -393,7 +406,40 @@
     var pw = txt(1540, 886, '', 'val', gu); upd.push(function () { pw.textContent = 'POWER ' + (s().power.on ? 'ON' : 'LOST'); pw.style.fill = s().power.on ? '#c8d6e6' : '#ff6b6b'; });
     var rf = txt(1416, 916, '', 'val', gu); upd.push(function () { var q = s(); rf.textContent = 'Route ' + q.route + ' → ' + q.routeNow + ' · Flared ' + Math.round(q.flare.total) + ' Sm³'; });
     var rg = txt(1416, 936, '', 'val', gu); upd.push(function () { var q = s(); rg.textContent = 'PSV ' + (q.sc.psv || q.v101.psv || q.ht.psv ? 'LIFTING' : 'closed') + ' · BDV ' + (q.bdv ? 'OPEN' : 'closed') + ' · auto-start ' + ['P-101', 'P-201', 'P-301', 'P-401'].map(function (k) { return q.auto[k] ? '●' : '○'; }).join(''); });
-    if (cfg.ownerName) { var wm = txt(1876, 984, cfg.ownerName, '', svg, 'end'); wm.style.cssText = 'font:700 26px system-ui;fill:#3a85d6;opacity:.85'; }
+    // ---------- realism packages: LACT, fuel gas / purge, water treatment, chemicals, power, chokes
+    function pkg(id, x, y, w, hg, title) { var g = eqGroup(id); S('rect', { x: x, y: y, width: w, height: hg, rx: 8, 'class': 'vessel', 'data-box': id }, g); txt(x + 10, y + 20, title, 'eqn', g); return g; }
+    function dyn(g, x, y, fn, anchor) { var e = txt(x, y, '', 'in', g, anchor); upd.push(function () { var r = fn(); if (e.textContent !== r[0]) e.textContent = r[0]; e.style.fill = r[1] || ''; }); return e; }
+    var RED = '#ff6b6b', GRN = '#a9f0c7', YEL = '#ffd479';
+    var gl = pkg('LACT', 1700, 610, 190, 175, 'LACT SKID');
+    pipe('M1664,700 H1890', '', function () { return s().exp.q; });
+    bubble(1745, 652, 'FT-202', 'FT-202'); bubble(1805, 652, 'AT-202', 'AT-202');
+    S('rect', { x: 1740, y: 688, width: 24, height: 24, 'class': 'vessel' }, gl); txt(1752, 704, 'M', 'in', gl, 'middle');
+    S('rect', { x: 1800, y: 692, width: 18, height: 16, 'class': 'vessel' }, gl); txt(1809, 703, 'S', 'in', gl, 'middle');
+    dyn(gl, 1710, 738, function () { var l = s().lact; return ['MF ' + l.mf.toFixed(4) + '  err ' + (l.dev * 100).toFixed(2) + '%', Math.abs(l.dev) > 0.003 ? YEL : '']; });
+    dyn(gl, 1710, 754, function () { var l = s().lact; return ['BS&W ' + l.bsw.toFixed(2) + '%  pot ' + Math.round(l.samp) + '%', '']; });
+    dyn(gl, 1710, 770, function () { var l = s().lact; return [l.divert ? 'DIVERT TO SLOP' : l.prove > 0 ? 'PROVING ' + Math.ceil(l.prove) + ' s' : 'ON SPEC · FLOW TO PIPELINE', l.divert ? RED : l.prove > 0 ? YEL : GRN]; });
+    var gfu = pkg('FUELGAS', 440, 850, 165, 135, 'FUEL GAS & PURGE');
+    inside(gfu, 452, 882, 'FG HDR', 'PT-902'); inside(gfu, 452, 900, 'PURGE', 'FT-402'); inside(gfu, 452, 918, 'SEAL DRUM', 'LT-402');
+    dyn(gfu, 452, 940, function () { var ok = s().fg.P > 2.5; return [ok ? 'Burner gas available' : 'FUEL GAS LOW', ok ? GRN : RED]; }); txt(452, 966, 'source: V-101 gas', 'tagl', gfu);
+    var gwt = pkg('WTRT', 613, 850, 165, 135, 'WATER TREATMENT');
+    S('path', { d: 'M728,894 h30 v18 l-15,24 l-15,-24 Z', 'class': 'vessel' }, gwt); txt(743, 908, 'HC', 'in', gwt, 'middle');
+    inside(gwt, 625, 884, 'IN', 'AT-300'); inside(gwt, 625, 902, 'OiW', 'AT-301');
+    dyn(gwt, 625, 922, function () { var w = s().wt; return ['Efficiency ' + Math.round(w.eff * 100) + '%', w.eff < 0.6 ? RED : '']; });
+    dyn(gwt, 625, 940, function () { var w = s().wt; return [w.back > 0 ? 'BACKWASH ' + Math.ceil(w.back) + ' s' : w.skim > 0 ? 'SKIMMING ' + Math.ceil(w.skim) + ' s' : 'Normal', w.back > 0 || w.skim > 0 ? YEL : GRN]; });
+    var gch = pkg('CHEM', 786, 850, 165, 135, 'CHEMICAL INJECTION');
+    dyn(gch, 798, 882, function () { return ['DEMULSIFIER ' + s().dem + ' ppm', '']; });
+    dyn(gch, 798, 900, function () { return ['CORR. INHIB. ' + s().chem.ci + ' ppm', '']; });
+    dyn(gch, 798, 918, function () { return ['ANTIFOAM ' + s().chem.af + ' ppm', s().flt.foamEff > 0.15 ? YEL : '']; });
+    inside(gch, 798, 940, 'CORROSION', 'AT-501'); txt(798, 966, 'mpy (field of probe)', 'tagl', gch);
+    var gpw = pkg('POWER', 959, 850, 165, 135, 'POWER GENERATION');
+    ['G-1', 'G-2', 'G-3'].forEach(function (gn, i) { dyn(gpw, 971, 880 + i * 16, function () { var st = s().gen[gn]; return [gn + ' ' + st, st === 'RUNNING' ? GRN : st === 'TRIPPED' ? RED : st === 'STARTING' ? YEL : '']; }); });
+    dyn(gpw, 971, 936, function () { var pw = s().power; return ['LOAD ' + Math.round(pw.demand) + ' / ' + Math.round(pw.cap) + ' kW', pw.shed ? RED : '']; });
+    dyn(gpw, 971, 954, function () { var pw = s().power; return [!pw.on ? 'BLACKOUT' : pw.shed ? 'LOAD SHED ACTIVE' : 'Bus healthy', !pw.on || pw.shed ? RED : GRN]; });
+    ['W-1', 'W-2', 'W-3'].forEach(function (w, i) { var y = 150 + i * 90; dyn(svg, 97, y - 7, function () { var q = s().wells[w]; return ['CK ' + Math.round(q.choke) + '%', q.open ? '' : '#7d8ba0']; }); });
+    dyn(svg, 1896, 312, function () { return ['SEAL ' + Math.round(s().seal.lvl) + '%', s().seal.lvl < 40 ? RED : '']; }, 'end');
+    dyn(svg, 1896, 324, function () { return ['PURGE ' + Math.round(tg('FT-402').v), '']; }, 'end');
+    if (cfg.ownerName) { var wm = txt(1876, 977, cfg.ownerName, '', svg, 'end'); wm.style.cssText = 'font:700 22px system-ui;fill:#3a85d6;opacity:.85'; }
+    if (cfg.credit) { var wm2 = txt(1876, 996, cfg.credit, '', svg, 'end'); wm2.style.cssText = 'font:600 16px system-ui;fill:#6f8fb5;opacity:.95'; }
     // alarm highlight on equipment outlines
     upd.push(function () {
       var worst = {}; plant.activeAlarms().forEach(function (a) { if (a.state === 'RTN_UNACK') return; var e = ALM_EQ[a.id]; if (e && (!worst[e] || a.pr < worst[e])) worst[e] = a.pr; });
@@ -472,7 +518,7 @@
     tags.forEach(function (t) { var q = tg(t), b = h('b', { text: '--' }), sm = h('small', { text: t + ' ' + q.desc + ' (' + (UNIT[q.unit] || q.unit) + ')' }); g.appendChild(h('div', null, [sm, b])); sheetUpd.push(function () { var z = tg(t), al = alarmOf(t); b.textContent = fmt(z.v, z.unit); b.style.color = al === 1 ? '#ff6b6b' : al === 2 ? '#ffb347' : al === 3 ? '#ffe066' : ''; }); });
     return h('div', { 'class': 'fp' }, [g]);
   }
-  function stateOf(id) { var q = s(); return id === 'HO-1' ? q.ho.burner : id === 'E-103' ? q.ht.burner : q.pumps[id]; }
+  function stateOf(id) { var q = s(); if (id.charAt(0) === 'G') return q.gen[id]; return id === 'HO-1' ? q.ho.burner : id === 'E-103' ? q.ht.burner : q.pumps[id]; }
   function equipWidget(id) {
     var wrap = h('div', { 'class': 'fp' }), st = h('span', { 'class': 'status', text: '' });
     wrap.appendChild(h('h4', null, [h('span', { text: EQ_NAME[id] || (id + ' pump') }), st]));
@@ -488,6 +534,7 @@
     sheetUpd.push(function () { var v = get(); if (!dragging) sl.value = v; out.textContent = (+v).toFixed(stp < 1 ? 2 : 0) + ' ' + (unit || ''); });
     return h('div', { 'class': 'row' }, [h('span', { 'class': 'k', text: label }), sl, out]);
   }
+  function kvRow(label, fn) { var v = h('span', { 'class': 'v' }); sheetUpd.push(function () { v.textContent = fn(); }); return h('div', { 'class': 'row' }, [h('span', { 'class': 'k', text: label }), v]); }
   function special(kind, body) {
     var p = h('div', { 'class': 'fp' }), k = kind.split(':');
     if (k[0] === 'dem') {
@@ -511,12 +558,52 @@
       ['IAC-A', 'IAC-B'].forEach(function (c) { var st = h('span', { 'class': 'status' }); sheetUpd.push(function () { var v = s().ia[c === 'IAC-A' ? 'A' : 'B']; st.textContent = v; st.className = 'status ' + v; }); p.appendChild(h('div', { 'class': 'row' }, [h('span', { 'class': 'k', text: c }), st, h('button', { 'class': 'go', text: 'START', onclick: function () { act('iaStart', c); } }), h('button', { text: 'STOP', onclick: function () { act('iaStop', c); } })])); });
       var pw = h('span', { 'class': 'status' }); sheetUpd.push(function () { pw.textContent = s().power.on ? 'ON' : 'LOST'; pw.className = 'status ' + (s().power.on ? 'ON' : 'TRIPPED'); });
       p.appendChild(h('div', { 'class': 'row' }, [h('span', { 'class': 'k', text: 'Main power' }), pw, h('button', { 'class': 'go', text: 'RESTORE', onclick: function () { act('power', null, true); } })]));
+      p.appendChild(sliderRow('Ambient temperature base', -10, 55, 1, function () { return plant.cfg.ambient; }, function (v) { act('ambient', null, v); }, '°C'));
+      p.appendChild(h('p', { 'class': 'note', text: 'Ambient swings about ±3 °C over a 24 h cycle (night is cooler): air cooler duty, hot-oil losses and gas density follow it.' }));
+    } else if (k[0] === 'lact') {
+      p.appendChild(h('h4', null, [h('span', { text: 'LACT: meter, BS&W monitor, sampler, prover' })]));
+      p.appendChild(kvRow('Meter factor (applied)', function () { return s().lact.mf.toFixed(4); }));
+      p.appendChild(kvRow('Meter error vs prover', function () { return (s().lact.dev * 100).toFixed(2) + ' %'; }));
+      p.appendChild(kvRow('Status', function () { var l = s().lact; return l.divert ? 'DIVERTING off-spec crude' : l.prove > 0 ? 'Proving ' + Math.ceil(l.prove) + ' s' : 'On spec'; }));
+      p.appendChild(h('div', { 'class': 'ctl' }, [h('button', { 'class': 'go', text: 'PROVE METER (120 s)', onclick: function () { act('prove'); } }), h('button', { text: 'TAKE COMPOSITE SAMPLE', onclick: function () { act('lactSample'); toast('Sample taken, lab result in the journal'); } })]));
+      p.appendChild(h('p', { 'class': 'note', text: 'The LACT diverts crude to slop when BS&W stays above spec for 30 s. Meter factor drifts slowly; prove the meter when the PROVE DUE alarm appears (a real prove needs export flow). Empty the sampler pot with a composite sample before it fills.' }));
+    } else if (k[0] === 'fuel') {
+      p.appendChild(h('h4', null, [h('span', { text: 'Fuel gas header and flare seal drum' })]));
+      p.appendChild(kvRow('Burners permitted', function () { return s().fg.P > 2.5 ? 'Yes (PT-902 above 2.5 barg)' : 'NO, fuel gas too low'; }));
+      p.appendChild(kvRow('Seal drum level', function () { return Math.round(s().seal.lvl) + ' % (normal 60 to 80 %)'; }));
+      p.appendChild(h('p', { 'class': 'note', text: 'Fuel gas is taken from V-101 gas. If V-101 pressure falls (low production, cold start) PT-902 drops and the burners trip at 2.0 barg. Purge gas keeps the flare header positive; a low seal drum level risks flashback.' }));
+    } else if (k[0] === 'wtrt') {
+      p.appendChild(h('h4', null, [h('span', { text: 'Hydrocyclone and T-301 skimming' })]));
+      p.appendChild(kvRow('Hydrocyclone efficiency', function () { return Math.round(s().wt.eff * 100) + ' %'; }));
+      p.appendChild(kvRow('Backwash / skim timers', function () { var w = s().wt; return Math.ceil(w.back) + ' s / ' + Math.ceil(w.skim) + ' s'; }));
+      p.appendChild(h('div', { 'class': 'ctl' }, [h('button', { 'class': 'go', text: 'BACKWASH (5 min)', onclick: function () { act('backwash'); } }), h('button', { text: 'SKIM T-301 (5 min)', onclick: function () { act('skim'); } })]));
+      p.appendChild(h('p', { 'class': 'note', text: 'Oil in water above 40 ppm alarms and above 100 ppm is a disposal-limit breach. Fouling lowers efficiency; backwashing restores it over about 5 min, skimming helps while it recovers.' }));
+    } else if (k[0] === 'chem') {
+      p.appendChild(h('h4', null, [h('span', { text: 'Chemical injection doses' })]));
+      p.appendChild(sliderRow('Demulsifier (upstream SC-101)', 0, 50, 1, function () { return s().dem; }, function (v) { act('dem', null, v); }, 'ppm'));
+      p.appendChild(sliderRow('Corrosion inhibitor', 0, 30, 1, function () { return s().chem.ci; }, function (v) { act('chem', 'ci', v); }, 'ppm'));
+      p.appendChild(sliderRow('Antifoam (V-101)', 0, 30, 1, function () { return s().chem.af; }, function (v) { act('chem', 'af', v); }, 'ppm'));
+      p.appendChild(h('p', { 'class': 'note', text: 'More demulsifier helps water break out but costs money. Corrosion inhibitor lowers the corrosion rate (AT-501); antifoam suppresses foam in V-101. Over-dosing is waste, under-dosing shows up as alarms.' }));
+    } else if (k[0] === 'power') {
+      p.appendChild(h('h4', null, [h('span', { text: 'Site power: 3 x generator, load shedding' })]));
+      p.appendChild(kvRow('Load / capacity', function () { var pw = s().power; return Math.round(pw.demand) + ' / ' + Math.round(pw.cap) + ' kW'; }));
+      p.appendChild(kvRow('Load shedding', function () { return s().power.shed ? 'ACTIVE (P-301/P-501 tripped, fan limited)' : 'Inactive'; }));
+      p.appendChild(h('div', { 'class': 'ctl' }, [h('button', { 'class': 'go', text: 'RESET LOAD SHED', onclick: function () { act('shedReset'); } }), h('button', { text: 'RESTORE MAIN POWER', onclick: function () { act('power', null, true); } })]));
+      p.appendChild(h('p', { 'class': 'note', text: 'Start a generator (60 s run-up) before resetting load shedding: one generator cannot carry the full plant. After a trip restart disposal pumps P-301A/B and P-501 manually.' }));
     } else if (k[0] === 'wells') {
       p.appendChild(h('h4', null, [h('span', { text: 'Wells (open / shut-in)' })]));
       ['W-1', 'W-2', 'W-3'].forEach(function (w) { var st = h('span', { 'class': 'status' }); sheetUpd.push(function () { var o = s().wells[w].open; st.textContent = o ? 'OPEN' : 'SHUT-IN'; st.className = 'status ' + (o ? 'RUNNING' : 'STOPPED'); }); p.appendChild(h('div', { 'class': 'row' }, [h('span', { 'class': 'k', text: w + ' (' + Math.round(s().wells[w].share * 100) + '% of rate)' }), st, h('button', { 'class': 'go', text: 'OPEN', onclick: function () { act('well', w, true); } }), h('button', { text: 'SHUT IN', onclick: function () { act('well', w, false); } })])); });
       p.appendChild(h('h4', { style: 'margin-top:10px' }, [h('span', { text: 'Field conditions (choke / reservoir)' })]));
       p.appendChild(sliderRow('Liquid rate', 0, 900, 10, function () { return s().well.liquidRate; }, function (v) { act('rateSet', null, v); }, 'm³/h'));
       p.appendChild(sliderRow('Water cut', 0, 0.8, 0.01, function () { return s().well.wc; }, function (v) { act('wcSet', null, v); }, ''));
+      p.appendChild(h('h4', { style: 'margin-top:10px' }, [h('span', { text: 'Wellhead chokes and well test' })]));
+      ['W-1', 'W-2', 'W-3'].forEach(function (w) {
+        p.appendChild(sliderRow(w + ' choke', 0, 100, 5, function () { return s().wells[w].choke; }, function (v) { act('choke', w, v); }, '%'));
+        var tb = h('button', { text: 'TEST ' + w, onclick: function () { act('wellTest', w, s().test.well !== w); } }); sheetUpd.push(function () { tb.className = s().test.well === w ? 'primary' : ''; tb.textContent = (s().test.well === w ? 'STOP TEST ' : 'TEST ') + w; });
+        p.appendChild(h('div', { 'class': 'ctl' }, [tb]));
+      });
+      p.appendChild(tagGrid(['FT-T1', 'AT-T1']));
+      p.appendChild(h('p', { 'class': 'note', text: 'Well test: line one well up to the test separator to read its own rate and water cut. Chokes are the quickest way to cut production. Wells differ in water cut (W-3 is the wettest).' }));
     } else if (k[0] === 'esdv') {
       p.appendChild(h('h4', null, [h('span', { text: 'ESDV-001 inlet shutdown valve (20 s stroke)' })]));
       p.appendChild(h('div', { 'class': 'ctl' }, [h('button', { 'class': 'go', text: 'OPEN (after ESD reset)', onclick: function () { act('openInlet'); } }), h('button', { text: 'CLOSE', onclick: function () { act('closeInlet'); } })]));
@@ -538,6 +625,7 @@
       p.appendChild(h('h4', null, [h('span', { text: 'Flare pilot' }), ps]));
       p.appendChild(h('div', { 'class': 'ctl' }, [h('button', { 'class': 'go', text: 'RE-IGNITE PILOT', onclick: function () { act('flareIgnite'); } })]));
       p.appendChild(h('p', { 'class': 'note', text: 'An unlit flare vents raw gas: re-ignite promptly. Do not re-ignite while V-401 level is above 90%.' }));
+      p.appendChild(kvRow('Seal drum level / purge gas', function () { return Math.round(s().seal.lvl) + ' % / ' + Math.round(tg('FT-402').v) + ' Sm³/h'; }));
     }
     body.appendChild(p);
   }
@@ -605,10 +693,13 @@
   var alarmSig = '';
   function renderAlarms(force) {
     var list = plant.activeAlarms();
-    var sig = list.map(function (a) { return a.id + a.state; }).join('|') + '#' + plant.log.length + (plant.log[0] ? plant.log[0].text : '');
+    var sig = list.map(function (a) { return a.id + a.state; }).join('|') + '#' + plant.log.length + (plant.log[0] ? plant.log[0].text : '') + '#' + plant.flood + '#' + Object.keys(s().shelf).join(',') + (s().first ? s().first.id : '');
     if (!force && sig === alarmSig) return; alarmSig = sig;
     var root = $('alarmView'); root.innerHTML = '';
     root.appendChild(h('div', { 'class': 'panel' }, [h('h3', { text: 'Active alarms (' + list.length + ')' }), h('div', { 'class': 'ctl' }, [h('button', { 'class': 'primary', text: 'ACKNOWLEDGE ALL', onclick: function () { act('ackAll'); renderAlarms(true); } })])]));
+    var fl = plant.flood || 0, fp = h('div', { 'class': 'panel' }, [h('h3', { text: 'Alarm management (ISA-18.2)' }), h('div', { 'class': 'row' }, [h('span', { 'class': 'k', text: 'Alarms raised in last 10 min (flood above 10)' }), h('span', { 'class': 'v', style: 'color:' + (fl > 10 ? '#ff6b6b' : fl > 5 ? '#ffd479' : '#a9f0c7'), text: String(fl) + (fl > 10 ? ' FLOOD' : '') })])]);
+    var fo = s().first; if (fo && s().t - fo.t0 < 1800) { fp.appendChild(h('div', { 'class': 'row' }, [h('span', { 'class': 'k', text: 'First-out: ' + fo.id + ' ' + fo.desc + ' at ' + clock(fo.t0) }), h('span', { 'class': 'v', text: fo.cascade.length ? '+' + fo.cascade.length : '' })])); if (fo.cascade.length) fp.appendChild(h('div', { 'class': 'note', text: 'Then: ' + fo.cascade.slice(0, 10).map(function (c) { return c.id + ' (+' + c.dt + ' s)'; }).join(', ') })); }
+    root.appendChild(fp);
     var p = h('div', { 'class': 'panel' });
     if (!list.length) p.appendChild(h('div', { 'class': 'row', text: 'No active alarms' }));
     list.forEach(function (a) {
@@ -616,21 +707,28 @@
       p.appendChild(h('div', { 'class': 'alm p' + a.pr + (unack ? ' unack' : '') + (a.state === 'RTN_UNACK' ? ' rtn' : ''), onclick: function () { if (eq) { tabTo('overview'); openSheet(eq); } } }, [
         h('div', { 'class': 'pri' }),
         h('div', null, [h('b', { text: a.id }), h('small', { text: a.desc + (a.value ? ' · ' + a.value : '') }), h('small', { text: (a.state === 'RTN_UNACK' ? 'Returned to normal · ' : '') + clock(a.since) + (eq ? ' · ' + eq : '') })]),
-        h('button', { text: unack ? 'ACK' : '', onclick: function (e) { e.stopPropagation(); act('ack', a.id); renderAlarms(true); } })]));
+        h('div', { 'class': 'btns' }, [h('button', { text: unack ? 'ACK' : '', onclick: function (e) { e.stopPropagation(); act('ack', a.id); renderAlarms(true); } }),
+          a.pr > 1 ? h('button', { 'class': 'sh', text: 'SHELVE', onclick: function (e) { e.stopPropagation(); act('shelve', a.id, 15); renderAlarms(true); } }) : null])]));
     });
     root.appendChild(p);
+    var shl = plant.shelvedList();
+    if (shl.length) { var sp = h('div', { 'class': 'panel' }, [h('h3', { text: 'Shelved alarms (' + shl.length + ')' })]); shl.forEach(function (x) { sp.appendChild(h('div', { 'class': 'row' }, [h('span', { 'class': 'k', text: x.id + ' · returns in ' + Math.max(0, Math.ceil((x.until - s().t) / 60)) + ' min' }), h('button', { text: 'UNSHELVE', onclick: function () { act('unshelve', x.id); renderAlarms(true); } })])); }); root.appendChild(sp); }
     var jp = h('div', { 'class': 'panel' }, [h('h3', { text: 'Event journal' })]);
     plant.log.slice(0, 60).forEach(function (l) { jp.appendChild(h('div', { 'class': 'logline', html: '<span class="' + l.type + '">' + clock(l.t) + ' ' + l.type + '</span> ' + l.text.replace(/</g, '&lt;') })); });
     root.appendChild(jp);
   }
 
   // ------------------------------------------------------------------ trends
+  var hist2 = {}, histT2 = [], rec2 = 0;
+  function clearHist() { hist = {}; histT = []; hist2 = {}; histT2 = []; rec2 = 0; }
   var hist = {}, histT = [], trendSel = ['LT-001', 'PT-001', 'TT-102', 'AT-101'], trendWin = 1800, cross = null;
   function pushH(k, v) { var a = hist[k] || (hist[k] = []); a.push(v); if (a.length > 720) a.shift(); }
   function record() {
     histT.push(s().t); if (histT.length > 720) histT.shift();
     plant.tags().forEach(function (q) { pushH(q.tag, q.v); });
     plant.LOOP_DEFS.forEach(function (d) { var L = plant.loops[d[0]]; pushH('SP:' + d[0], L.sp); pushH('OP:' + d[0], L.op); });
+    rec2++;
+    if (rec2 % 6 === 0) { histT2.push(s().t); if (histT2.length > 1440) histT2.shift(); plant.tags().forEach(function (q) { var a = hist2[q.tag] || (hist2[q.tag] = []); a.push(q.v); if (a.length > 1440) a.shift(); }); }
   }
   var COLORS = ['#5aa7ff', '#ffb347', '#7be0a0', '#ff7b9c', '#c7a6ff'];
   function buildTrends() {
@@ -639,8 +737,8 @@
     var chips = h('div', { 'class': 'chips' });
     plant.tags().forEach(function (q) { chips.appendChild(h('span', { 'class': 'chip' + (trendSel.indexOf(q.tag) >= 0 ? ' on' : ''), text: q.tag, onclick: function () { var i = trendSel.indexOf(q.tag); if (i >= 0) trendSel.splice(i, 1); else { if (trendSel.length >= 5) trendSel.shift(); trendSel.push(q.tag); } buildTrends(); } })); });
     p.appendChild(chips);
-    var win = h('div', { 'class': 'ctl' }); [['10 min', 600], ['30 min', 1800], ['2 h', 7200]].forEach(function (w) { win.appendChild(h('button', { text: w[0], 'class': trendWin === w[1] ? 'primary' : '', onclick: function () { trendWin = w[1]; buildTrends(); } })); });
-    p.appendChild(win); root.appendChild(p);
+    var win = h('div', { 'class': 'ctl' }); [['10 min', 600], ['30 min', 1800], ['2 h', 7200], ['12 h', 43200], ['24 h', 86400]].forEach(function (w) { win.appendChild(h('button', { text: w[0], 'class': trendWin === w[1] ? 'primary' : '', onclick: function () { trendWin = w[1]; buildTrends(); } })); });
+    win.appendChild(h('button', { text: 'COPY CSV', onclick: exportCSV })); p.appendChild(win); root.appendChild(p);
     var cv = h('canvas', { id: 'trendCv' }); root.appendChild(h('div', { 'class': 'panel' }, [cv, h('div', { id: 'trendLegend', 'class': 'chips' })]));
     cv.addEventListener('pointerdown', function (e) { cross = e.offsetX / cv.clientWidth; drawTrend(); });
     cv.addEventListener('pointermove', function (e) { if (e.buttons || e.pointerType === 'touch') { cross = e.offsetX / cv.clientWidth; drawTrend(); } });
@@ -652,17 +750,28 @@
     cv.width = W * dpr; cv.height = H * dpr; var g = cv.getContext('2d'); g.scale(dpr, dpr);
     g.fillStyle = '#0b141f'; g.fillRect(0, 0, W, H); g.strokeStyle = '#1d2b3d'; g.lineWidth = 1; g.font = '10px system-ui'; g.fillStyle = '#8396ad';
     for (var i = 1; i < 5; i++) { g.beginPath(); g.moveTo(0, H * i / 5); g.lineTo(W, H * i / 5); g.stroke(); g.fillText((100 - i * 20) + '%', 3, H * i / 5 - 2); }
-    var n = Math.min(histT.length, Math.round(trendWin / 10)), start = histT.length - n;
+    var T2 = trendWin > 7200, HT = T2 ? histT2 : histT, HH = T2 ? hist2 : hist, SS = T2 ? 60 : 10;
+    var n = Math.min(HT.length, Math.round(trendWin / SS)), start = HT.length - n;
     var leg = $('trendLegend'); leg.innerHTML = '';
     var idx = cross !== null && n > 1 ? Math.max(0, Math.min(n - 1, Math.round(cross * (n - 1)))) : n - 1;
     trendSel.forEach(function (t, ci) {
-      var q = tg(t), a = hist[t] || []; g.strokeStyle = COLORS[ci]; g.lineWidth = 1.8; g.beginPath();
+      var q = tg(t), a = HH[t] || []; g.strokeStyle = COLORS[ci]; g.lineWidth = 1.8; g.beginPath();
       for (var k = 0; k < n; k++) { var v = a[start + k], y = H - (v - q.lo) / (q.hi - q.lo) * H * .96 - H * .02, x = n > 1 ? k / (n - 1) * W : 0; if (k === 0) g.moveTo(x, y); else g.lineTo(x, y); }
       g.stroke();
       var cur = a[start + idx];
       leg.appendChild(h('span', { 'class': 'chip', style: 'border-color:' + COLORS[ci], text: t + ' ' + (cur !== undefined ? fmt(cur, q.unit) : '--') + ' ' + (UNIT[q.unit] || q.unit) + ' [' + q.lo + '–' + q.hi + ']' }));
     });
-    if (cross !== null && n > 1) { var cx = idx / (n - 1) * W; g.strokeStyle = '#fff'; g.beginPath(); g.moveTo(cx, 0); g.lineTo(cx, H); g.stroke(); g.fillStyle = '#fff'; g.fillText(clock(histT[start + idx]), Math.min(cx + 4, W - 60), 12); }
+    if (cross !== null && n > 1) { var cx = idx / (n - 1) * W; g.strokeStyle = '#fff'; g.beginPath(); g.moveTo(cx, 0); g.lineTo(cx, H); g.stroke(); g.fillStyle = '#fff'; g.fillText(clock(HT[start + idx]), Math.min(cx + 4, W - 60), 12); }
+  }
+  function copyText(txt, msg) {
+    function fb() { showModal('<h3>Copy this text</h3><textarea id="cpTxt" readonly style="width:100%;height:220px;background:#0b141f;color:#fff;border:1px solid #1d2b3d;border-radius:8px;font:11px ui-monospace,monospace"></textarea><button class="primary" id="mOk" style="width:100%;margin-top:8px">Close</button>', 'mOk'); var ta = $('cpTxt'); ta.value = txt; ta.focus(); ta.select(); }
+    try { navigator.clipboard.writeText(txt).then(function () { toast(msg || 'Copied'); }, fb); } catch (e) { fb(); }
+  }
+  function exportCSV() {
+    var T2 = trendWin > 7200, HT = T2 ? histT2 : histT, HH = T2 ? hist2 : hist, SS = T2 ? 60 : 10, n = Math.min(HT.length, Math.round(trendWin / SS)), start = HT.length - n;
+    var rows = ['time_s,' + trendSel.join(',')];
+    for (var i = 0; i < n; i++) rows.push(Math.round(HT[start + i]) + ',' + trendSel.map(function (tag) { var v = (HH[tag] || [])[start + i]; return v === undefined ? '' : (+v).toFixed(3); }).join(','));
+    copyText(rows.join('\n'), 'CSV copied (' + n + ' rows)');
   }
 
   // ------------------------------------------------------------------ safety tab
@@ -712,7 +821,8 @@
   var scoreShown = false;
   function buildTrain() {
     var root = $('trainView'); root.innerHTML = '';
-    if (cfg.ownerName) root.appendChild(h('div', { 'class': 'panel', html: '<h3>Operator: ' + cfg.ownerName.replace(/</g, '&lt;') + '</h3>' }));
+    root.appendChild(h('div', { 'class': 'panel' }, [h('h3', { text: 'Operator' }), h('div', { 'class': 'ctl' }, [h('input', { type: 'text', id: 'opName', maxlength: '30', placeholder: 'Trainee name (for the report)', value: opName(), oninput: function (e) { setOp(e.target.value); } })]),
+      h('p', { 'class': 'note', text: (cfg.ownerName ? 'Owner / instructor: ' + cfg.ownerName : '') + (cfg.credit ? '   ·   ' + cfg.credit : '') })]));
     root.appendChild(h('div', { id: 'scnActive' })); root.appendChild(h('div', { 'class': 'panel', id: 'kpiBox' }));
     var p = h('div', { 'class': 'panel' }, [h('h3', { text: 'Training scenarios' })]);
     plant.scenarios().forEach(function (d) {
@@ -720,25 +830,34 @@
         h('div', { 'class': 'ctl' }, [h('button', { 'class': 'primary', text: 'START', onclick: function () { startScn(d.id); } })])]));
     });
     root.appendChild(p);
+    var hp = h('div', { 'class': 'panel' }, [h('h3', { text: 'Score history' })]), hs = scores().slice(-8).reverse();
+    if (!hs.length) hp.appendChild(h('div', { 'class': 'row', text: 'No completed scenarios yet' }));
+    hs.forEach(function (r) { hp.appendChild(h('div', { 'class': 'row' }, [h('span', { 'class': 'k', text: r.date + ' · ' + r.title + (r.op ? ' · ' + r.op : '') }), h('span', { 'class': 'v', text: r.grade + ' ' + r.score })])); });
+    hp.appendChild(h('div', { 'class': 'ctl' }, [h('button', { 'class': 'primary', text: 'TRAINING REPORT', onclick: showReport }), h('button', { text: 'Clear history', onclick: function () { try { localStorage.removeItem('nf_cpf_scores'); } catch (e) {} buildTrain(); } })]));
+    root.appendChild(hp);
     var ins = h('div', { 'class': 'panel' }, [h('h3', { text: 'Instructor: inject faults' })]);
-    var F = [['Trip P-101A (no standby)', function () { s().auto['P-101'] = false; s().pumps['P-101A'] = 'TRIPPED'; }], ['Trip HO-1', function () { s().ho.burner = 'TRIPPED'; }], ['Trip E-103', function () { s().ht.burner = 'TRIPPED'; }],
+    var F = [['LT-101 drifting low', function () { plant.fault('inst', 'LT-101', { mode: 'DRIFT', rate: -0.04 }); }], ['FT-001 frozen', function () { plant.fault('inst', 'FT-001', { mode: 'FROZEN' }); }], ['PT-101 reads high', function () { plant.fault('inst', 'PT-101', { mode: 'HIGH' }); }],
+      ['LCV-103 stuck', function () { plant.fault('valve', 'LCV-103'); }], ['P-101A seal leak', function () { plant.fault('pump', 'P-101A', { kind: 'seal', rate: 1 / 600 }); }], ['P-101A bearing wear', function () { plant.fault('pump', 'P-101A', { kind: 'bearing', v: 0.5 }); }],
+      ['P-101B fails to start', function () { plant.fault('pump', 'P-101B', { kind: 'nostart' }); }], ['Foam in V-101', function () { plant.fault('foam', null, { v: 0.8 }); }], ['Emulsion carryover', function () { plant.fault('emul', null, { v: 0.6 }); }],
+      ['E-102 fouling', function () { plant.fault('hx2', null, { v: 0.5 }); }], ['G-1 trip', function () { plant.fault('gen', 'G-1'); }], ['LACT meter drift', function () { plant.fault('lact', null, { v: 1.006 }); }], ['Hydrocyclone fouled', function () { plant.fault('hc', null, { v: 0.4 }); }],
+      ['Trip P-101A (no standby)', function () { s().auto['P-101'] = false; s().pumps['P-101A'] = 'TRIPPED'; }], ['Trip HO-1', function () { s().ho.burner = 'TRIPPED'; }], ['Trip E-103', function () { s().ht.burner = 'TRIPPED'; }],
       ['Trip P-201A', function () { s().pumps['P-201A'] = 'TRIPPED'; }], ['Slug +100% 3 min', function () { s().well.slug = 1.0; setTimeout(function () { s().well.slug = 0; }, 180000 / speed); }],
       ['Water cut +25 pts', function () { s().well.wc = Math.min(0.8, s().well.wc + 0.25); }], ['IA failure', function () { s().ia.A = 'STOPPED'; s().ia.leak = true; setTimeout(function () { s().ia.leak = false; }, 300000 / speed); }],
-      ['Power failure', function () { s().power.on = false; }], ['Gas leak', function () { s().hazard.gas = true; s().hazard.gasTimer = 0; }], ['Fire', function () { s().hazard.fire = true; }],
+      ['Power failure (blackout)', function () { act('power', null, false); }], ['Gas leak', function () { s().hazard.gas = true; s().hazard.gasTimer = 0; }], ['Fire', function () { s().hazard.fire = true; }],
       ['Pipeline 40%', function () { s().pipe.avail = 0.4; }], ['Flare pilot out', function () { s().flare.pilot = 'OUT'; }], ['E-101 fouling 60%', function () { plant.cfg.hx1.foul = 0.6; }],
       ['Open BV-SC', function () { s().hv['BV-SC'] = 100; }], ['Open BV-HT', function () { s().hv['BV-HT'] = 100; }],
-      ['Clear faults', function () { s().hazard.gas = false; s().hazard.fire = false; s().pipe.avail = 1; s().well.wc = cfgWC(); s().well.slug = 0; s().ia.leak = false; s().power.on = true; s().hv['BV-SC'] = 0; s().hv['BV-HT'] = 0; s().fk.surge = 0; plant.cfg.hx1.foul = 0; }]];
+      ['Clear faults', function () { s().hazard.gas = false; s().hazard.fire = false; s().pipe.avail = 1; s().well.wc = cfgWC(); s().well.slug = 0; s().ia.leak = false; act('power', null, true); plant.fault('clear'); s().hv['BV-SC'] = 0; s().hv['BV-HT'] = 0; s().fk.surge = 0; plant.cfg.hx1.foul = 0; }]];
     var ctl = h('div', { 'class': 'ctl' }); F.forEach(function (f) { ctl.appendChild(h('button', { text: f[0], onclick: function () { f[1](); toast(f[0] + ' injected'); } })); }); ins.appendChild(ctl); root.appendChild(ins);
     var sv = h('div', { 'class': 'panel' }, [h('h3', { text: 'Session' }), h('div', { 'class': 'ctl' }, [
-      h('button', { text: 'Reset to normal operation', onclick: function () { plant.reset('normal'); histT = []; hist = {}; toast('Plant reset'); alarmSig = ''; } }),
-      h('button', { text: 'Cold shutdown state', onclick: function () { plant.startScenario('cold-startup'); histT = []; hist = {}; toast('Cold shutdown loaded'); } }),
-      h('button', { text: 'Save', onclick: function () { save(true); } }), h('button', { text: 'Load', onclick: load })])]);
+      h('button', { text: 'Reset to normal operation', onclick: function () { plant.reset('normal'); clearHist(); toast('Plant reset'); alarmSig = ''; } }),
+      h('button', { text: 'Cold shutdown state', onclick: function () { plant.startScenario('cold-startup'); clearHist(); toast('Cold shutdown loaded'); } }),
+      h('button', { text: 'Save', onclick: function () { save(true); } }), h('button', { text: 'Load', onclick: load }), h('button', { text: 'العربية / English', onclick: function () { if (window.__cpfUI.toggleLang) window.__cpfUI.toggleLang(); } })])]);
     root.appendChild(sv);
     root.appendChild(h('div', { 'class': 'panel note', text: 'Training aid: a simplified dynamic model with illustrative numbers, tuned to the plant data supplied (600 m³/h liquid, 35% water cut, 6000 m³ tank, 450 m³/h export). It is not a validated process simulation and must not be used for design, safety-case or operating decisions. Real procedures are defined by your site SOPs and permit-to-work system.' }));
     viewUpd.train = renderTrainStatus;
   }
   function cfgWC() { return (cfg.wells && cfg.wells.waterCut !== undefined) ? cfg.wells.waterCut : E.DEFAULTS.wells.waterCut; }
-  function startScn(id) { plant.startScenario(id); histT = []; hist = {}; record(); scoreShown = false; alarmSig = ''; setSpeed(1); tabTo('overview'); var d = plant.scenarios().filter(function (x) { return x.id === id; })[0]; showModal('<h3>' + d.title + '</h3><p>' + d.brief + '</p><ul>' + d.objectives.map(function (o) { return '<li>' + o + '</li>'; }).join('') + '</ul><button class="primary" id="mOk" style="width:100%">Begin</button>', 'mOk'); }
+  function startScn(id) { plant.startScenario(id); clearHist(); record(); scoreShown = false; alarmSig = ''; setSpeed(1); tabTo('overview'); var d = plant.scenarios().filter(function (x) { return x.id === id; })[0]; showModal('<h3>' + d.title + '</h3><p>' + d.brief + '</p><ul>' + d.objectives.map(function (o) { return '<li>' + o + '</li>'; }).join('') + '</ul><button class="primary" id="mOk" style="width:100%">Begin</button>', 'mOk'); }
   function renderTrainStatus() {
     var sc = plant.scenario, box = $('scnActive'); if (!box) return;
     if (!sc) { box.innerHTML = ''; } else {
@@ -747,13 +866,31 @@
     }
     var k = plant.kpi;
     $('kpiBox').innerHTML = '<h3>KPIs (since start)</h3>' + [['Exported crude', k.exportedM3.toFixed(0) + ' m³'], ['Gas to flare', (k.flaredSm3 / 1000).toFixed(0) + ' kSm³'], ['Unlit-flare venting', Math.round(k.ventSec) + ' s'], ['Off-spec crude', k.offspecM3.toFixed(0) + ' m³'], ['PSD / ESD-1 / PSV', k.psdCount + ' / ' + k.esdCount + ' / ' + k.psvLifts], ['P1 alarm time', Math.round(k.alarmSecP1 / 60) + ' min']].map(function (r) { return '<div class="row"><span class="k">' + r[0] + '</span><span class="v">' + r[1] + '</span></div>'; }).join('');
-    if (sc && sc.done && !scoreShown) { scoreShown = true; showModal('<h3>' + sc.def.title + (cfg.ownerName ? ' — ' + cfg.ownerName : '') + '</h3><div class="big">' + sc.score.grade + ' · ' + sc.score.total + '</div>' + (sc.score.notes.length ? '<ul>' + sc.score.notes.map(function (n) { return '<li>' + n + '</li>'; }).join('') + '</ul>' : '<p>Clean run — no penalties.</p>') + '<button class="primary" id="mOk" style="width:100%">Close</button>', 'mOk'); }
+    if (sc && sc.done && !scoreShown) { scoreShown = true; addScore({ date: new Date().toLocaleDateString(), op: opName(), id: sc.def.id, title: sc.def.title, score: sc.score.total, grade: sc.score.grade, notes: sc.score.notes.join('; ') }); showModal('<h3>' + sc.def.title + (opName() ? ' — ' + opName() : cfg.ownerName ? ' — ' + cfg.ownerName : '') + '</h3><div class="big">' + sc.score.grade + ' · ' + sc.score.total + '</div>' + (sc.score.notes.length ? '<ul>' + sc.score.notes.map(function (n) { return '<li>' + n + '</li>'; }).join('') + '</ul>' : '<p>Clean run — no penalties.</p>') + '<button class="primary" id="mOk" style="width:100%">Close</button>', 'mOk'); }
   }
-  function showModal(html, okId) { var m = $('modal'); $('modalBox').innerHTML = html; m.className = 'modal'; $(okId).onclick = function () { m.className = 'modal hidden'; }; }
+  function opName() { try { return localStorage.getItem('nf_cpf_op') || ''; } catch (e) { return ''; } }
+  function setOp(n) { try { localStorage.setItem('nf_cpf_op', n); } catch (e) {} }
+  function scores() { try { return JSON.parse(localStorage.getItem('nf_cpf_scores') || '[]'); } catch (e) { return []; } }
+  function addScore(r) { var a = scores(); a.push(r); if (a.length > 100) a.shift(); try { localStorage.setItem('nf_cpf_scores', JSON.stringify(a)); } catch (e) {} }
+  function reportText() {
+    var a = scores(), L = [], sum = 0;
+    L.push((cfg.facilityName || 'CPF') + ' - OPERATOR TRAINING REPORT'); L.push('Operator: ' + (opName() || '(not set)') + (cfg.ownerName ? '    Owner / instructor: ' + cfg.ownerName : '')); if (cfg.credit) L.push(cfg.credit);
+    L.push('Date: ' + new Date().toLocaleString()); L.push('');
+    if (!a.length) L.push('No completed scenarios yet.');
+    a.forEach(function (r) { sum += r.score; L.push(r.date + ' | ' + r.title + ' | ' + r.grade + ' ' + r.score + (r.op ? ' | ' + r.op : '') + (r.notes ? ' | ' + r.notes : '')); });
+    if (a.length) { L.push(''); L.push('Scenarios: ' + a.length + '   Average score: ' + Math.round(sum / a.length)); }
+    return L.join('\n');
+  }
+  function showReport() {
+    var txt = reportText();
+    showModal('<h3>Training report</h3><pre id="rpt" class="rpt"></pre><div class="ctl"><button class="primary" id="mOk">Close</button><button id="rpPrint">Print</button><button id="rpCopy">Copy text</button></div>', 'mOk');
+    $('rpt').textContent = txt; $('rpPrint').onclick = function () { try { window.print(); } catch (e) { toast('Printing is not available here, use Copy text', true); } }; $('rpCopy').onclick = function () { copyText(txt, 'Report copied'); };
+  }
+  function showModal(html, okId) { var m = $('modal'); $('modalBox').innerHTML = html + (cfg.credit ? '<p class="credit">' + cfg.credit + '</p>' : ''); m.className = 'modal'; $(okId).onclick = function () { m.className = 'modal hidden'; }; }
 
   // ------------------------------------------------------------------ save / load
-  function save(manual) { try { localStorage.setItem('nf_cpf_save_v2', plant.snapshot()); if (manual) toast('Session saved'); } catch (e) { if (manual) toast('Save not available', true); } }
-  function load() { try { var d = localStorage.getItem('nf_cpf_save_v2'); if (!d) return toast('No saved session', true); plant.restore(d); histT = []; hist = {}; alarmSig = ''; toast('Session loaded'); } catch (e) { toast('Load failed', true); } }
+  function save(manual) { try { localStorage.setItem('nf_cpf_save_v3', plant.snapshot()); if (manual) toast('Session saved'); } catch (e) { if (manual) toast('Save not available', true); } }
+  function load() { try { var d = localStorage.getItem('nf_cpf_save_v3'); if (!d) return toast('No saved session', true); plant.restore(d); clearHist(); alarmSig = ''; toast('Session loaded'); } catch (e) { toast('Load failed', true); } }
 
   // ------------------------------------------------------------------ top bar, tabs, audio, zoom, areas
   var curView = 'overview', speed = 1, paused = false, muted = true, audio = null, lastUnack = 0;
@@ -766,7 +903,7 @@
   function tabTo(v) {
     curView = v; Array.prototype.forEach.call(document.querySelectorAll('#tabs button'), function (b) { b.className = b.getAttribute('data-v') === v ? 'on' : ''; });
     Array.prototype.forEach.call(document.querySelectorAll('.view'), function (x) { x.className = 'view' + (x.id === 'v-' + v ? ' active' : ''); });
-    if (v === 'alarms') renderAlarms(true); if (v === 'trends') buildTrends(); if (v === 'train') buildTrain(); if (v === 'safety') buildSafety(); if (v === 'control') buildControl();
+    var ub = window.__cpfUI && window.__cpfUI.build[v]; if (ub) ub(); if (v === 'alarms') renderAlarms(true); if (v === 'trends') buildTrends(); if (v === 'train') buildTrain(); if (v === 'safety') buildSafety(); if (v === 'control') buildControl();
   }
   Array.prototype.forEach.call(document.querySelectorAll('#tabs button'), function (b) { b.onclick = function () { tabTo(b.getAttribute('data-v')); }; });
   $('alarmBanner').onclick = function () { tabTo('alarms'); };
@@ -810,12 +947,13 @@
     }
     requestAnimationFrame(frame);
   }
-  if (cfg.ownerName) $('ownerTag').textContent = cfg.ownerName;
+  if (cfg.ownerName) { $('ownerTag').textContent = cfg.ownerName; if (cfg.credit) $('ownerTag').appendChild(h('small', { text: cfg.credit })); }
   buildMimic(); record(); fitAll();
   window.addEventListener('resize', function () { var a = AREAS.filter(function (x) { return $('areaBar').querySelector('.on') && $('areaBar').querySelector('.on').getAttribute('data-a') === x[0]; })[0]; if (a) gotoArea(a); });
   document.addEventListener('visibilitychange', function () { if (document.hidden) { paused = true; $('btnPause').textContent = '▶'; save(false); } });
   try { if (navigator.wakeLock) navigator.wakeLock.request('screen').catch(function () {}); } catch (e) {}
   if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) { navigator.serviceWorker.register('sw.js').catch(function () {}); }
+  window.__cpfUI = { h: h, act: act, toast: toast, clock: clock, fmt: fmt, plant: plant, s: s, tg: tg, cfg: cfg, showModal: showModal, copyText: copyText, viewUpd: viewUpd, tabTo: tabTo, openSheet: openSheet, build: {}, opName: opName, EQ: EQ };
   window.__cpf = { plant: plant, tabTo: tabTo, openSheet: openSheet, setSpeed: setSpeed, gotoArea: gotoArea, AREAS: AREAS };
   requestAnimationFrame(frame);
 })();

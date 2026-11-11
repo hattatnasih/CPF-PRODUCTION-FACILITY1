@@ -2,6 +2,7 @@
 window.CPF_CONFIG = {
   "facilityName": "North Field CPF",
   "ownerName": "Eng. Nasih",
+  "credit": "By Nasih Noreddin",
   "wells": {
     "liquidRate": 600,
     "waterCut": 0.35

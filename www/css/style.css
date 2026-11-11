@@ -132,3 +132,18 @@ table.ce{border-collapse:collapse;width:100%;font-size:11px}.ce th,.ce td{border
 .bar .lim{position:absolute;top:0;bottom:0;width:2px;background:var(--warn)}
 .bar .lim.p1{background:var(--crit)}.bar .lim.p2{background:var(--high)}
 canvas.mini{height:90px;margin-top:8px}
+/* ---- realism update */
+#tabs button{font-size:10px;min-width:0}#tabs button i{font-size:16px}
+.seg{display:flex;gap:4px;margin:8px;overflow-x:auto}.seg button{flex:1;min-height:36px;padding:2px 8px;font-size:12px;white-space:nowrap}.seg button.on{background:#1d5fa6;border-color:#3a85d6}
+.alm .btns{display:flex;flex-direction:column;gap:4px}.alm .btns button{min-height:30px;padding:2px 8px;font-size:11px}.alm .btns button:empty{display:none}.alm .btns button.sh{background:#2a3446}
+input[type=text],textarea,select{background:#0b141f;border:1px solid var(--line);color:#fff;border-radius:6px;padding:8px;font-size:15px;max-width:100%}
+input[type=text]{flex:1;min-width:0}textarea{width:100%;height:70px;box-sizing:border-box}
+details.panel summary{font-weight:700;font-size:13px;cursor:pointer;padding:2px 0}
+.credit{text-align:center;color:#6f8fb5;font-size:12px;margin:8px 0 0}
+.rpt{white-space:pre-wrap;font:12px ui-monospace,Menlo,monospace;background:#0b141f;border:1px solid var(--line);border-radius:8px;padding:8px;max-height:50vh;overflow:auto}
+.logline .FIELD{color:#7be0a0}.logline .PTW{color:#ffb347}.logline .PROC{color:#c7a6ff}.logline .NOTE{color:#5aa7ff}
+[dir=rtl]{text-align:right}[dir=rtl] .row .v{text-align:left;direction:ltr}
+@media print{body>*:not(#modal){display:none!important}#modal{position:static!important;display:block!important;background:#fff!important}#modalBox{color:#000!important;background:#fff!important;box-shadow:none!important}.rpt{color:#000;background:#fff;max-height:none;border:0}.ctl{display:none}#modal.hidden{display:none!important}}
+.owner small{display:block;font-size:10px;font-weight:600;color:#6f8fb5;letter-spacing:.2px;line-height:1.1}
+.owner small{white-space:nowrap}
+@media (max-width:520px){.zoombar .hint{display:none}}

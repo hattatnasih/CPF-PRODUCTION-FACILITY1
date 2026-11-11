@@ -55,6 +55,13 @@ const cases = [
   ['flare-fkod-upset', (p, el, l) => { at(l, 'a', el, 40, () => { p.cmd('start', 'P-401B'); p.cmd('auto', 'P-401', true); }); at(l, 'b', el, 100, () => p.cmd('flareIgnite')); }, 1800],
   ['export-restriction', (p, el, l) => { at(l, 'a', el, 40, () => p.cmd('start', 'P-201B')); at(l, 'b', el, 620, () => p.cmd('setSP', 'FIC-201', 200)); }, 2400],
   ['gas-leak-esd', (p, el, l) => { at(l, 'a', el, 45, () => p.cmd('esd')); }, 900],
+  ['instrument-fault', (p, el, l) => { at(l, 'a', el, 120, () => p.cmd('setMode', 'LIC-101', 'MAN')); at(l, 'b', el, 150, () => p.cmd('ptw', 'LT-101', true)); at(l, 'c', el, 470, () => p.cmd('ptw', 'LT-101', false)); at(l, 'd', el, 480, () => p.cmd('setMode', 'LIC-101', 'AUTO')); }, 1800],
+  ['stuck-valve', (p, el, l) => { at(l, 'a', el, 60, () => { p.cmd('choke', 'W-3', 40); p.cmd('choke', 'W-2', 60); }); at(l, 'b', el, 100, () => p.cmd('ptw', 'LCV-103', true)); at(l, 'c', el, 420, () => p.cmd('ptw', 'LCV-103', false)); at(l, 'd', el, 500, () => { p.cmd('choke', 'W-3', 100); p.cmd('choke', 'W-2', 100); }); }, 1800],
+  ['foaming', (p, el, l) => { at(l, 'a', el, 60, () => p.cmd('chem', 'af', 14)); }, 1800],
+  ['pump-seal-leak', (p, el, l) => { at(l, 'a', el, 100, () => p.cmd('start', 'P-101B')); at(l, 'b', el, 130, () => p.cmd('stop', 'P-101A')); at(l, 'c', el, 160, () => p.cmd('ptw', 'P-101A', true)); at(l, 'd', el, 480, () => p.cmd('ptw', 'P-101A', false)); }, 1500],
+  ['generator-trip', (p, el, l) => { at(l, 'a', el, 40, () => p.cmd('start', 'G-3')); at(l, 'b', el, 120, () => { p.cmd('shedReset'); }); at(l, 'c', el, 130, () => p.cmd('start', 'P-301A')); }, 1500],
+  ['lact-meter-drift', (p, el, l) => { at(l, 'a', el, 60, () => p.cmd('prove')); at(l, 'b', el, 300, () => p.cmd('lactSample')); }, 1200],
+  ['hydrocyclone-fouling', (p, el, l) => { at(l, 'a', el, 60, () => { p.cmd('backwash'); p.cmd('skim'); }); }, 1800],
 ];
 cases.forEach(([id, actor, maxT]) => {
   console.log('\nScenario ' + id + ':');
