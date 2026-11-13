@@ -36,7 +36,7 @@
     'WELLS':  { title: 'Wells W-1…W-3 / production manifold MF-1', tags: ['PT-000', 'TT-000', 'FT-001'], special: 'wells' },
     'ESDV':   { title: 'ESDV-001 inlet shutdown valve', tags: ['FT-001'], special: 'esdv' },
     'V-001': { title: 'V-001 slug catcher', tags: ['LT-001', 'LI-002', 'PT-001', 'TT-001'], loops: ['LIC-001', 'LIC-002', 'PIC-001'], special: 'drain:DR-001' },
-    'HX-1':  { title: 'HX-1 feed / stripped-crude exchanger (HX-1)', tags: ['TT-001', 'TT-106', 'TT-107'], special: 'hx1' },
+    'HX-1':  { title: 'HX-1 thermal (hot oil) heat exchanger', tags: ['TT-001', 'TT-106', 'TT-107'], special: 'hx1' },
     'V-100':  { title: 'V-100 1st stage separator', tags: ['LT-101', 'LI-102', 'PT-101', 'TT-106'], loops: ['LIC-101', 'LIC-102', 'PIC-101'], special: 'drain:DR-101' },
     'V-210':  { title: 'V-210 hot-oil exchanger (V-210)', tags: ['TT-106', 'TT-103', 'TT-101'], loops: ['TIC-103'] },
     'HT-200':  { title: 'HT-200 heater treater', tags: ['LT-103', 'LI-104', 'TT-102', 'PT-102', 'AT-103'], equip: ['E-103'], loops: ['TIC-102', 'LIC-103', 'LIC-104', 'PIC-102'], special: 'dem', drain: 'DR-102' },
@@ -263,8 +263,8 @@
     pipe('M560,640 V530 H800 V640', '', function () { return F().qHX * F().fcb; });                                 // cooler bypass BV-CL to V-110 tie-in
     pipe('M1600,294 V335 H1550', 'gas', function () { return s().n2.flow; });                                       // N2 to stripper
     pipe('M1275,552 V532 H1470 V600 H1500', 'gas', function () { return s().lpf.flow; });                             // TK-410 cold vent to LP flare
-    pipe('M1510,400 V520 H545 V294', '', function () { return F().qHX; });              // stripped crude -> HX-1 shell
-    pipe('M515,294 V640 H600', '', function () { return F().qHX; });
+    pipe('M1510,400 V520 H545 V640 H600', '', function () { return F().qHX; });          // stripped crude straight to the cooler
+    pipe('M905,450 H515 V294', 'hot', function () { return s().ho.burner === 'ON' ? 1 : 0; });   // hot oil to HX-1
     pipe('M740,640 H860', '', function () { return F().qHX; });
     pipe('M1020,640 H1170', '', function () { return s().routeNow === 'TANK' ? F().q106 : 0; });
     pipe('M1100,640 V860 H1150', '', function () { return s().routeNow === 'SLOP' ? F().q106 : 0; });
@@ -315,7 +315,7 @@
     pipe('M430,168 V70', 'gas');
 
     // ---------- HX-1
-    var gx = hxsym('HX-1', 515, 270, 24, { sub: 'HX-1 feed/stripped' });
+    var gx = hxsym('HX-1', 515, 270, 24, { sub: 'HX-1 thermal (hot oil)' });
     S('rect', { x: 490, y: 246, width: 50, height: 48, fill: 'transparent' }, gx);
     bubble(580, 335, 'TT-106', 'TT-106'); bubble(460, 335, 'TT-107', 'TT-107');
 
@@ -695,10 +695,10 @@
       p.appendChild(h('div', { 'class': 'ctl' }, [h('button', { 'class': 'go', text: 'RE-IGNITE LP PILOT', onclick: function () { act('flareIgnite', 'LP'); } })]));
       p.appendChild(kvRow('LP header pressure', function () { return (tg('PT-405').v * 1000).toFixed(0) + ' mbarg'; }));
     } else if (k[0] === 'hx1') {
-      p.appendChild(h('h4', null, [h('span', { text: 'HX-1 heat recovery' })]));
+      p.appendChild(h('h4', null, [h('span', { text: 'HX-1 thermal heat exchanger' })]));
       var du = h('div', { 'class': 'row' }); var dv = h('span', { 'class': 'v' }); du.appendChild(h('span', { 'class': 'k', text: 'Fouling factor (instructor)' })); du.appendChild(dv); p.appendChild(du);
       sheetUpd.push(function () { dv.textContent = (plant.cfg.hx1.foul * 100).toFixed(0) + ' %'; });
-      p.appendChild(h('p', { 'class': 'note', text: 'Hot side: stripped crude from C-101. Cold side: V-001 oil. Fouling lowers V-100 feed temperature, so V-210 and E-103 must work harder.' }));
+      p.appendChild(h('p', { 'class': 'note', text: 'Thermal oil exchanger: hot oil from HO-1 heats the V-001 oil before V-100. Stripped crude from C-101 goes directly to the E-105 cooler. Fouling lowers V-100 feed temperature, so V-210 and E-103 must work harder and HO-1 takes more load.' }));
     } else if (k[0] === 'flare') {
       var ps = h('span', { 'class': 'status' }); sheetUpd.push(function () { ps.textContent = s().flare.pilot; ps.className = 'status ' + (s().flare.pilot === 'ON' ? 'RUNNING' : 'TRIPPED'); });
       p.appendChild(h('h4', null, [h('span', { text: 'Flare pilot' }), ps]));

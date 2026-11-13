@@ -2,12 +2,12 @@
  *
  * Flowsheet (oil train):
  *   Wellheads W-1..3 -> oil manifold MF-1 -> ESDV-001 -> slug catcher V-001
- *   -> shell & tube exchanger HX-1 (feed / stripped-crude heat recovery) -> 1st stage separator V-100
+ *   -> shell & tube thermal (hot oil) exchanger HX-1 heated by HO-1 -> 1st stage separator V-100
  *   -> exchanger V-210 (hot oil) -> heater treater HT-200 (fired, E-103 burner; bypass BV-HT)
  *   -> 2 x Viking transfer pumps P-101A/B -> oil manifold MF-2 with 4 gate / straight valves:
  *        GV-1 stripping column inlet, GV-2 stripping column outlet, GV-3 and GV-4 straight bypass to the cooler
  *   -> stripping column C-101 (reboiler on hot oil, N2 stripping gas from the N2 package via XV-N2)
- *   -> HX-1 hot side -> oil fan cooler E-105 (bypass line BV-CL ties in at V-110) -> 2nd stage separator V-110
+ *   -> oil fan cooler E-105 (bypass line BV-CL ties in at V-110) -> 2nd stage separator V-110
  *   -> storage tank TK-410 (or slop TK-430) -> export pumps P-201A/B -> LACT -> pipeline.
  *   TK-410 cold vent (VENT-410, PVRV) -> LP flare FL-402.
  *   Gas from every vessel -> flare KO drum V-401 (FKOD) -> HP flare FL-401 (pilot).
@@ -324,7 +324,7 @@
                 b: cold ? 0.03 : 0.004, burner: cold ? 'OFF' : 'ON', purge: 0, psv: false },
         col:  { h2s: cold ? 30 : 8, v: (cold ? 0.15 : 0.5) * Cc.col.cap, P: cold ? 0.3 : Cc.col.P, Treb: cold ? TAMB + 3 : Cc.col.Treb, rvp: cold ? 15 : 8.6 },
         ho:   { T: cold ? TAMB + 3 : Cc.ho.T, burner: cold ? 'OFF' : 'ON', purge: 0 },
-        cool: { T: cold ? TAMB + 3 : 48.5 },
+        cool: { T: cold ? TAMB + 3 : 48.5, Tin: cold ? TAMB + 3 : 120 },
         v103: { vo: (cold ? 0.15 : 0.40) * Cc.v103.cap, vw: (cold ? 0.03 : 0.12) * Cc.v103.cap, P: cold ? 0.3 : Cc.v103.P, T: cold ? TAMB + 3 : 48.5, b: cold ? 0.03 : 0.0017 },
         tank: { v: (cold ? 20 : Cc.tank.level) / 100 * Cc.tank.cap, bsw: 0.12, P: 3, lift: false, vac: false },
         n2: { pkg: 'RUNNING', P: 7.5, flow: 0, cd: 0 },
@@ -383,8 +383,8 @@
       set('LI-002', 'V-001 interface', '%', s.sc.vw / cs.sc.cap * 100, 0, 100);
       set('PT-001', 'V-001 pressure', 'barg', s.sc.P, 0, 20);
       set('TT-001', 'V-001 temperature', '°C', s.sc.T, 0, 150);
-      set('TT-106', 'HX-1 cold outlet (V-100 inlet)', '°C', s.hx1.Tc, 0, 150);
-      set('TT-107', 'HX-1 hot outlet', '°C', s.hx1.Th, 0, 200);
+      set('TT-106', 'HX-1 oil outlet (V-100 inlet)', '°C', s.hx1.Tc, 0, 150);
+      set('TT-107', 'HX-1 hot oil return', '°C', s.hx1.Th, 0, 200);
       set('LT-101', 'V-100 level', '%', (s.v101.vo + s.v101.vw) / cs.v101.cap * 100, 0, 100);
       set('LI-102', 'V-100 interface', '%', s.v101.vw / cs.v101.cap * 100, 0, 100);
       set('PT-101', 'V-100 pressure', 'barg', s.v101.P, 0, 12);
@@ -881,7 +881,7 @@
       var Qreb = Greb * (ho.T - col.Treb);
       col.Treb += dt * (Cf * (TMF - col.Treb) + Qreb - 6 * scV * (col.Treb - TAMB)) / Mcol;
       col.Treb = clamp(col.Treb, 0, 220);
-      ho.T += dt * (heatHO - duty2 - Qreb - SPEC.hoLoss * (ho.T - TAMB)) / SPEC.hoC;
+      ho.T += dt * (heatHO - duty2 - Qreb - (s.flows.qhx1 || 0) - SPEC.hoLoss * (ho.T - TAMB)) / SPEC.hoC;
       ho.T = clamp(ho.T, 0, 260);
       var n2 = s.n2;
       if (n2.pkg === 'STARTING') { n2.cd -= dt; if (n2.cd <= 0) { n2.pkg = 'RUNNING'; logEvt('OP', 'N2 package running'); } }
@@ -898,17 +898,20 @@
 
       // ---------- HX-1 hot side, cooler E-105, V-110
       var qHX = q105 + qDir;
+      if (s.cool.Tin === undefined) s.cool.Tin = 120;
       var bV3in = bMF;
       if (qHX > 0.05) {
         var Thin = (q105 * col.Treb + qDir * TMF) / qHX;
-        var Ch = Math.max(capr(qHX, bV3in), 1), Cmin = Math.min(Ch, Math.max(Cc1, 1));
-        var eff = R.hx1.eff * (1 - R.hx1.foul);
-        var Qhx = eff * Cmin * Math.max(Thin - s.hx1.Tc, 0);
-        s.hx1.Th += ((Thin - Qhx / Ch) - s.hx1.Th) * Math.min(1, dt / 45);
-        s.hx1.Tc += ((s.sc.T + Qhx / Math.max(Cc1, 1)) - s.hx1.Tc) * Math.min(1, dt / 120);
-      } else { s.hx1.Th += (TAMB - s.hx1.Th) * Math.min(1, dt / 300); s.hx1.Tc += (s.sc.T - s.hx1.Tc) * Math.min(1, dt / 120); }
+        s.cool.Tin += (Thin - s.cool.Tin) * Math.min(1, dt / 45);
+      } else { s.cool.Tin += (TAMB - s.cool.Tin) * Math.min(1, dt / 300); }
+      // HX-1 is a thermal (hot oil) exchanger: hot oil from HO-1 heats the V-001 oil going to V-100
+      var effH = 0.118 * (1 - R.hx1.foul), hoOn = s.ho.T > s.hx1.Tc;
+      var Qhx = hoOn ? effH * Math.max(Cc1, 1) * Math.max(ho.T - s.hx1.Tc, 0) : 0;
+      s.hx1.Tc += ((s.sc.T + Qhx / Math.max(Cc1, 1)) - s.hx1.Tc) * Math.min(1, dt / 120);
+      s.hx1.Th += ((ho.T - Qhx / Math.max(SPEC.hoC / 60, 1)) - s.hx1.Th) * Math.min(1, dt / 60);
+      s.flows.qhx1 = Qhx;
       var fan = Vv('FAN-105') / 100 * (s.power.on ? 1 : 0);
-      var Tcool = TAMB + (s.hx1.Th - TAMB) * Math.exp(-2.0 * fan);
+      var Tcool = TAMB + (s.cool.Tin - TAMB) * Math.exp(-2.0 * fan);
       s.cool.T += (Tcool - s.cool.T) * Math.min(1, dt / 60);
       var v3 = s.v103, lvl3 = (v3.vo + v3.vw) / R.v103.cap, ifc3 = v3.vw / R.v103.cap;
       var q106 = vflow(Vv('LCV-106'), 800 * scL, v3.P + 1.5 + 0.3 * lvl3, 2.3);
@@ -918,7 +921,7 @@
       var r3 = vessel(v3, R.v103.cap, qHX * (1 - bV3in), qHX * bV3in, q106, b3, q107w, h);
       var dV3 = drainFrom(v3, 'DR-103', h);
       var fcb = clamp(s.hv['BV-CL'] / 100 * 0.9, 0, 0.9);
-      v3.T += ((s.cool.T * (1 - fcb) + s.hx1.Th * fcb) - v3.T) * Math.min(1, dt / 90);
+      v3.T += ((s.cool.T * (1 - fcb) + s.cool.Tin * fcb) - v3.T) * Math.min(1, dt / 90);
       var gas103in = qHX * (1 - bV3in) * GOR * 0.02 * (1 + 0.03 * Math.max(0, v3.T - 55));
       var gasOut103 = vflow(Vv('PCV-103'), 1040 * scG, v3.P - s.fk.P, 0.5);
       gasBal(v3, R.v103.gasVol, gas103in, gasOut103, (qHX - q106 - q107w - dV3) * h, h, 8);
