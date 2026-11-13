@@ -1,4 +1,4 @@
-/* North Field CPF Trainer — DCS-style operator UI. Pure DOM/SVG/canvas, no dependencies, works offline in an Android WebView. */
+/* HBJF — DCS-style operator UI. Pure DOM/SVG/canvas, no dependencies, works offline in an Android WebView. */
 (function () {
   'use strict';
   var E = window.CPFEngine, cfg = window.CPF_CONFIG || {};
@@ -35,23 +35,23 @@
   var EQ = {
     'WELLS':  { title: 'Wells W-1…W-3 / production manifold MF-1', tags: ['PT-000', 'TT-000', 'FT-001'], special: 'wells' },
     'ESDV':   { title: 'ESDV-001 inlet shutdown valve', tags: ['FT-001'], special: 'esdv' },
-    'SC-101': { title: 'SC-101 slug catcher', tags: ['LT-001', 'LI-002', 'PT-001', 'TT-001'], loops: ['LIC-001', 'LIC-002', 'PIC-001'], special: 'drain:DR-001' },
-    'E-101':  { title: 'E-101 feed / stripped-crude exchanger (HX-1)', tags: ['TT-001', 'TT-106', 'TT-107'], special: 'hx1' },
-    'V-101':  { title: 'V-101 1st stage separator', tags: ['LT-101', 'LI-102', 'PT-101', 'TT-106'], loops: ['LIC-101', 'LIC-102', 'PIC-101'], special: 'drain:DR-101' },
-    'E-102':  { title: 'E-102 hot-oil exchanger (HX-2)', tags: ['TT-106', 'TT-103', 'TT-101'], loops: ['TIC-103'] },
-    'V-102':  { title: 'V-102 heater treater', tags: ['LT-103', 'LI-104', 'TT-102', 'PT-102', 'AT-103'], equip: ['E-103'], loops: ['TIC-102', 'LIC-103', 'LIC-104', 'PIC-102'], special: 'dem', drain: 'DR-102' },
+    'V-001': { title: 'V-001 slug catcher', tags: ['LT-001', 'LI-002', 'PT-001', 'TT-001'], loops: ['LIC-001', 'LIC-002', 'PIC-001'], special: 'drain:DR-001' },
+    'HX-1':  { title: 'HX-1 feed / stripped-crude exchanger (HX-1)', tags: ['TT-001', 'TT-106', 'TT-107'], special: 'hx1' },
+    'V-100':  { title: 'V-100 1st stage separator', tags: ['LT-101', 'LI-102', 'PT-101', 'TT-106'], loops: ['LIC-101', 'LIC-102', 'PIC-101'], special: 'drain:DR-101' },
+    'V-210':  { title: 'V-210 hot-oil exchanger (V-210)', tags: ['TT-106', 'TT-103', 'TT-101'], loops: ['TIC-103'] },
+    'HT-200':  { title: 'HT-200 heater treater', tags: ['LT-103', 'LI-104', 'TT-102', 'PT-102', 'AT-103'], equip: ['E-103'], loops: ['TIC-102', 'LIC-103', 'LIC-104', 'PIC-102'], special: 'dem', drain: 'DR-102' },
     'P-101A': { title: 'P-101A transfer pump', tags: ['LT-103', 'VT-101A'], equip: ['P-101A'], special: 'auto:P-101' },
     'P-101B': { title: 'P-101B transfer pump', tags: ['LT-103', 'VT-101B'], equip: ['P-101B'], special: 'auto:P-101' },
-    'MF-2':   { title: 'MF-2 discharge manifold & bypasses', tags: ['TT-102', 'AT-103'], special: 'mf2' },
-    'C-101':  { title: 'C-101 stripping column & E-104 reboiler', tags: ['LT-105', 'PT-104', 'TT-104', 'AT-102'], loops: ['TIC-104', 'LIC-105', 'PIC-104'] },
+    'MF-2':   { title: 'MF-2 oil manifold: gate valves GV-1 / GV-2 / GV-3 / GV-4', tags: ['TT-102', 'AT-103'], special: 'mf2' },
+    'C-101':  { title: 'C-101 stripping column & E-104 reboiler', tags: ['LT-105', 'PT-104', 'TT-104', 'AT-102', 'AT-103', 'FT-N2'], loops: ['TIC-104', 'LIC-105', 'PIC-104'], extra: ['mf2'] },
     'HO-1':   { title: 'HO-1 hot oil heater', tags: ['TT-101'], equip: ['HO-1'], loops: ['TIC-101'] },
-    'E-105':  { title: 'E-105 oil cooler (air fin)', tags: ['TT-107', 'TT-105'], loops: ['TIC-105'] },
-    'V-103':  { title: 'V-103 2nd stage separator', tags: ['LT-106', 'LI-107', 'PT-103', 'AT-101', 'AT-102'], loops: ['LIC-106', 'LIC-107', 'PIC-103'], special: 'drain:DR-103' },
-    'T-101':  { title: 'T-101 storage tank', tags: ['LT-201', 'AT-201', 'FT-201'], loops: ['FIC-201'], special: 'route' },
+    'E-105':  { title: 'E-105 oil fan cooler (with bypass BV-CL)', tags: ['TT-107', 'TT-105', 'TT-110'], loops: ['TIC-105'], special: 'cooler' },
+    'V-110':  { title: 'V-110 2nd stage separator', tags: ['LT-106', 'LI-107', 'PT-103', 'TT-110', 'AT-101', 'AT-102'], loops: ['LIC-106', 'LIC-107', 'PIC-103'], special: 'drain:DR-103', extra: ['cooler'] },
+    'TK-410':  { title: 'TK-410 storage tank (cold vent to LP flare)', tags: ['LT-201', 'AT-201', 'FT-201', 'PT-410', 'FT-405'], loops: ['FIC-201'], special: 'route', extra: ['vent'] },
     'P-201A': { title: 'P-201A export pump', tags: ['FT-201', 'LT-201', 'VT-201A'], equip: ['P-201A'], special: 'auto:P-201' },
     'P-201B': { title: 'P-201B export pump', tags: ['FT-201', 'LT-201', 'VT-201B'], equip: ['P-201B'], special: 'auto:P-201' },
-    'T-102':  { title: 'T-102 slop tank', tags: ['LT-202'], equip: ['P-501'] },
-    'T-301':  { title: 'T-301 produced water tank', tags: ['LT-301', 'AT-301', 'FT-301'], loops: ['LIC-301'] },
+    'TK-430':  { title: 'TK-430 slop tank', tags: ['LT-202'], equip: ['P-501'] },
+    'TK-420':  { title: 'TK-420 produced water tank', tags: ['LT-301', 'AT-301', 'FT-301'], loops: ['LIC-301'] },
     'P-301A': { title: 'P-301A disposal pump', tags: ['LT-301', 'FT-301', 'VT-301A'], equip: ['P-301A'], special: 'auto:P-301' },
     'P-301B': { title: 'P-301B disposal pump', tags: ['LT-301', 'FT-301', 'VT-301B'], equip: ['P-301B'], special: 'auto:P-301' },
     'V-401':  { title: 'V-401 flare knock-out drum (FKOD)', tags: ['PT-401', 'LT-401', 'FT-401'], loops: ['LIC-401'], special: 'auto:P-401' },
@@ -63,34 +63,44 @@
     'FUELGAS': { title: 'Fuel gas header & flare purge', tags: ['PT-902', 'FT-402', 'LT-402'], special: 'fuel' },
     'WTRT':   { title: 'Produced water treatment (hydrocyclone)', tags: ['AT-300', 'AT-301', 'FT-301', 'LT-301'], special: 'wtrt' },
     'CHEM':   { title: 'Chemical injection', tags: ['AT-501'], special: 'chem' },
-    'POWER':  { title: 'Power generation G-1 / G-2 / G-3', tags: ['JT-901', 'JI-901'], equip: ['G-1', 'G-2', 'G-3'], special: 'power' }
+    'POWER':  { title: 'Power generation G-1 / G-2 (2 x generator)', tags: ['JT-901', 'JI-901'], equip: ['G-1', 'G-2'], special: 'power' },
+    'N2PKG':  { title: 'N2 package (stripping gas to C-101)', tags: ['FT-N2', 'PT-N2', 'AT-103', 'AT-102'], equip: ['N2-PKG'], special: 'n2' },
+    'LPF':    { title: 'FL-402 LP flare (TK-410 cold vent)', tags: ['PT-405', 'FT-405', 'PT-410'], special: 'lpf' }
   };
-  var EQ_NAME = { 'G-1': 'G-1 generator (60 s run-up)', 'G-2': 'G-2 generator (60 s run-up)', 'G-3': 'G-3 standby generator (60 s run-up)', 'HO-1': 'HO-1 hot oil heater (30 s purge)', 'E-103': 'E-103 heater treater burner (30 s purge)', 'P-501': 'P-501 slop pump (return to SC-101)' };
-  var TAG_EQ = { 'PT-000': 'WELLS', 'TT-000': 'WELLS', 'FT-001': 'WELLS', 'LT-001': 'SC-101', 'LI-002': 'SC-101', 'PT-001': 'SC-101', 'TT-001': 'SC-101', 'TT-106': 'E-101', 'TT-107': 'E-101',
-    'LT-101': 'V-101', 'LI-102': 'V-101', 'PT-101': 'V-101', 'TT-103': 'E-102', 'TT-101': 'HO-1', 'TT-102': 'V-102', 'LT-103': 'V-102', 'LI-104': 'V-102', 'PT-102': 'V-102', 'AT-103': 'V-102',
-    'LT-105': 'C-101', 'PT-104': 'C-101', 'TT-104': 'C-101', 'AT-102': 'C-101', 'TT-105': 'E-105', 'LT-106': 'V-103', 'LI-107': 'V-103', 'PT-103': 'V-103', 'AT-101': 'V-103',
-    'PT-401': 'V-401', 'LT-401': 'V-401', 'FT-401': 'FLARE', 'LT-201': 'T-101', 'AT-201': 'T-101', 'FT-201': 'T-101', 'LT-202': 'T-102', 'LT-301': 'T-301', 'AT-301': 'T-301', 'FT-301': 'T-301', 'PT-901': 'UTIL' };
+  var EQ_NAME = { 'G-1': 'G-1 generator (60 s run-up)', 'G-2': 'G-2 generator (60 s run-up)', 'N2-PKG': 'N2 package (30 s start)', 'HO-1': 'HO-1 hot oil heater (30 s purge)', 'E-103': 'E-103 heater treater burner (30 s purge)', 'P-501': 'P-501 slop pump (return to V-001)' };
+  var TAG_EQ = { 'PT-000': 'WELLS', 'TT-000': 'WELLS', 'FT-001': 'WELLS', 'LT-001': 'V-001', 'LI-002': 'V-001', 'PT-001': 'V-001', 'TT-001': 'V-001', 'TT-106': 'HX-1', 'TT-107': 'HX-1',
+    'LT-101': 'V-100', 'LI-102': 'V-100', 'PT-101': 'V-100', 'TT-103': 'V-210', 'TT-101': 'HO-1', 'TT-102': 'HT-200', 'LT-103': 'HT-200', 'LI-104': 'HT-200', 'PT-102': 'HT-200', 'AT-103': 'HT-200',
+    'LT-105': 'C-101', 'PT-104': 'C-101', 'TT-104': 'C-101', 'AT-102': 'C-101', 'TT-105': 'E-105', 'LT-106': 'V-110', 'LI-107': 'V-110', 'PT-103': 'V-110', 'AT-101': 'V-110',
+    'PT-401': 'V-401', 'LT-401': 'V-401', 'FT-401': 'FLARE', 'LT-201': 'TK-410', 'AT-201': 'TK-410', 'FT-201': 'TK-410', 'LT-202': 'TK-430', 'LT-301': 'TK-420', 'AT-301': 'TK-420', 'FT-301': 'TK-420', 'PT-901': 'UTIL' };
   var TAG_EQ2 = { 'PT-902': 'FUELGAS', 'FT-402': 'FUELGAS', 'LT-402': 'FLARE', 'AT-202': 'LACT', 'FT-202': 'LACT', 'QT-202': 'LACT', 'AT-501': 'CHEM', 'AT-300': 'WTRT', 'JT-901': 'POWER', 'JI-901': 'POWER', 'TT-900': 'UTIL', 'FT-T1': 'WELLS', 'AT-T1': 'WELLS' };
   for (var tk2 in TAG_EQ2) TAG_EQ[tk2] = TAG_EQ2[tk2];
+  TAG_EQ['TT-110'] = 'V-110'; TAG_EQ['FT-N2'] = 'N2PKG'; TAG_EQ['PT-N2'] = 'N2PKG'; TAG_EQ['PT-410'] = 'TK-410'; TAG_EQ['PT-405'] = 'LPF'; TAG_EQ['FT-405'] = 'LPF'; TAG_EQ['AT-103'] = 'HT-200';
   ['101A', '101B', '201A', '201B', '301A', '301B', '401A', '401B'].forEach(function (n) { TAG_EQ['VT-' + n] = 'P-' + n; });
   var ALM_EQ = {};
   plant.ALARM_DEFS.forEach(function (d) { ALM_EQ[d[0]] = TAG_EQ[d[2]]; });
   ['P-101A', 'P-101B', 'P-201A', 'P-201B', 'P-301A', 'P-401A'].forEach(function (p) { ALM_EQ[p + ' TRIP'] = p; });
   ['P-301B', 'P-401B', 'P-201B'].forEach(function (p) { ALM_EQ[p + ' TRIP'] = p; });
-  ['G-1 TRIP', 'G-2 TRIP', 'G-3 TRIP', 'LOAD SHED', 'POWER OVERLOAD'].forEach(function (a) { ALM_EQ[a] = 'POWER'; });
+  ['G-1 TRIP', 'G-2 TRIP', 'LOAD SHED', 'POWER OVERLOAD'].forEach(function (a) { ALM_EQ[a] = 'POWER'; });
   ['LACT DIVERT', 'LACT PROVE DUE', 'LACT SAMPLER FULL'].forEach(function (a) { ALM_EQ[a] = 'LACT'; });
   ['101A', '101B', '201A', '201B', '301A', '301B', '401A', '401B'].forEach(function (n) { ALM_EQ['SEAL ' + n] = 'P-' + n; });
-  ALM_EQ['SEAL 501'] = 'T-102';
-  ALM_EQ['HO-1 TRIP'] = 'HO-1'; ALM_EQ['E-103 TRIP'] = 'V-102'; ALM_EQ['PILOT OUT'] = 'FLARE'; ALM_EQ['PSV OPEN'] = 'SC-101'; ALM_EQ['POWER FAIL'] = 'UTIL';
+  ALM_EQ['SEAL 501'] = 'TK-430';
+  ALM_EQ['N2 PKG TRIP'] = 'N2PKG'; ALM_EQ['LP PILOT OUT'] = 'LPF'; ALM_EQ['TK410 PVRV LIFT'] = 'TK-410'; ALM_EQ['TK410 VACUUM'] = 'TK-410'; ALM_EQ['AAH-103'] = 'C-101';
+  ['F&G OVERRIDE', 'F&G KEY', 'SIS BYPASS', 'OVR EXPIRING'].forEach(function (a) { ALM_EQ[a] = 'FGSTAB'; });
+  plant.FG_ZONES.forEach(function (zz) {
+    var Z = zz[0]; ALM_EQ['FGS CONF ' + Z] = 'FGS:' + Z; ALM_EQ['DET FAULT ' + Z] = 'FGS:' + Z; ALM_EQ['ZONE BLIND ' + Z] = 'FGS:' + Z;
+    plant.FG_KEYS.forEach(function (k) { var pre = plant.FG_TYPES[k].pre; ALM_EQ[pre + 'A-' + Z + ' LOW'] = 'FGS:' + Z; ALM_EQ[pre + 'A-' + Z + ' HIGH'] = 'FGS:' + Z; });
+  });
+  ALM_EQ['HO-1 TRIP'] = 'HO-1'; ALM_EQ['E-103 TRIP'] = 'HT-200'; ALM_EQ['PILOT OUT'] = 'FLARE'; ALM_EQ['PSV OPEN'] = 'V-001'; ALM_EQ['POWER FAIL'] = 'UTIL';
 
   var AREAS = [
     ['Overview', 0, 0, VBW, VBH], ['Wells & SC', 0, 20, 600, 520], ['Separation', 560, 20, 460, 520], ['Treater', 980, 20, 460, 500], ['Stripping', 1380, 20, 520, 620],
-    ['Flare', 1560, 20, 340, 330], ['Cooling', 470, 500, 600, 320], ['Storage', 1060, 500, 680, 480], ['Water', 0, 420, 520, 580], ['Slop', 1050, 740, 500, 260], ['Packages', 420, 830, 740, 170], ['Export & LACT', 1380, 560, 520, 440]
+    ['Flare', 1560, 20, 340, 330], ['MF-2 / N2', 1220, 60, 520, 520], ['TK-410 / LP flare', 1100, 470, 560, 340], ['Cooling', 470, 500, 600, 320], ['Storage', 1060, 500, 680, 480], ['Water', 0, 420, 520, 580], ['Slop', 1050, 740, 500, 260], ['Packages', 420, 830, 740, 170], ['Export & LACT', 1380, 560, 520, 440]
   ];
 
   // ------------------------------------------------------------------ mimic (SVG)
   var upd = [];
   var viewUpd = {};
+  var FG_KEYS_L = plant.FG_KEYS;
   var svg = $('mimic');
   function S(tag, attrs, parent) { var e = document.createElementNS(NS, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); (parent || svg).appendChild(e); return e; }
   function txt(x, y, t, cls, parent, anchor) { var e = S('text', { x: x, y: y, 'class': cls || '', 'text-anchor': anchor || 'start' }, parent); e.textContent = t; return e; }
@@ -249,8 +259,11 @@
     pipe('M1288,350 H1330 M1288,410 H1330 M1330,410 V270 H1390', '', function () { return F().q103; });
     pipe('M1390,130 V340', '', function () { return F().qM; });
     pipe('M1390,270 H1470', '', function () { return F().qCin; });
-    pipe('M1390,340 V520', '', function () { return F().qDir; });                       // BV-SC bypass
-    pipe('M1510,400 V520 H545 V294', '', function () { return F().qHX; });              // stripped crude -> E-101 shell
+    pipe('M1390,345 V362 M1362,362 H1418 M1362,362 V520 M1418,362 V520', '', function () { return F().qDir; });   // GV-3 / GV-4 straight bypass legs
+    pipe('M560,640 V530 H800 V640', '', function () { return F().qHX * F().fcb; });                                 // cooler bypass BV-CL to V-110 tie-in
+    pipe('M1600,294 V335 H1550', 'gas', function () { return s().n2.flow; });                                       // N2 to stripper
+    pipe('M1275,552 V532 H1470 V600 H1500', 'gas', function () { return s().lpf.flow; });                             // TK-410 cold vent to LP flare
+    pipe('M1510,400 V520 H545 V294', '', function () { return F().qHX; });              // stripped crude -> HX-1 shell
     pipe('M515,294 V640 H600', '', function () { return F().qHX; });
     pipe('M740,640 H860', '', function () { return F().qHX; });
     pipe('M1020,640 H1170', '', function () { return s().routeNow === 'TANK' ? F().q106 : 0; });
@@ -291,8 +304,8 @@
     bubble(110, 372, 'PT-000', 'PT-000'); bubble(190, 372, 'FT-001', 'FT-001');
     xvalve('ESDV-001', 205, 270, function () { return s().esdv.pos / 100; });
 
-    // ---------- SC-101 slug catcher
-    var g = hvessel('SC-101', 250, 225, 180, 90, { lvl: 'LT-001', ifc: 'LI-002', boot: 345, sub: 'Slug catcher' });
+    // ---------- V-001 slug catcher
+    var g = hvessel('V-001', 250, 225, 180, 90, { lvl: 'LT-001', ifc: 'LI-002', boot: 345, sub: 'Slug catcher' });
     inside(g, 262, 252, 'L', 'LT-001'); inside(g, 262, 267, 'P', 'PT-001'); inside(g, 262, 282, 'T', 'TT-001');
     ctl('PIC-001', 330, 160, { v: true, dx: 56, dy: 0 }); ctl('LIC-001', 455, 270, { dy: -46 }); ctl('LIC-002', 345, 415, { v: true, dx: 56, dy: 0 });
     hvalve('DR-001', 372, 342, { lx: 14, ly: 4, la: 'start' });
@@ -301,24 +314,24 @@
     xvalve('BDV-001', 430, 160, function () { return s().bdv ? 1 : 0; }, { eq: 'ESDV' });
     pipe('M430,168 V70', 'gas');
 
-    // ---------- E-101 (HX-1)
-    var gx = hxsym('E-101', 515, 270, 24, { sub: 'HX-1 feed/stripped' });
+    // ---------- HX-1
+    var gx = hxsym('HX-1', 515, 270, 24, { sub: 'HX-1 feed/stripped' });
     S('rect', { x: 490, y: 246, width: 50, height: 48, fill: 'transparent' }, gx);
     bubble(580, 335, 'TT-106', 'TT-106'); bubble(460, 335, 'TT-107', 'TT-107');
 
-    // ---------- V-101
-    g = hvessel('V-101', 640, 230, 160, 80, { lvl: 'LT-101', ifc: 'LI-102', boot: 715, sub: '1st stage separator' });
+    // ---------- V-100
+    g = hvessel('V-100', 640, 230, 160, 80, { lvl: 'LT-101', ifc: 'LI-102', boot: 715, sub: '1st stage separator' });
     inside(g, 652, 256, 'L', 'LT-101'); inside(g, 652, 271, 'P', 'PT-101');
     ctl('PIC-101', 700, 160, { v: true, dx: 56, dy: 0 }); ctl('LIC-101', 825, 270, { dy: -46 }); ctl('LIC-102', 715, 415, { v: true, dx: 56, dy: 0 });
     hvalve('DR-101', 742, 340, { lx: 14, ly: 4, la: 'start' });
 
-    // ---------- E-102 (HX-2)
-    gx = hxsym('E-102', 900, 270, 24, { sub: 'HX-2 hot oil' });
+    // ---------- V-210
+    gx = hxsym('V-210', 900, 270, 24, { sub: 'V-210 hot oil' });
     ctl('TIC-103', 905, 380, { v: true, dx: 56, dy: 0 }); bubble(960, 330, 'TT-103', 'TT-103');
-    hvalve('BV-HT', 1000, 130, { ly: -22 }); txt(1000, 112, 'bypass V-102', 'tagl', svg, 'middle');
+    hvalve('BV-HT', 1000, 130, { ly: -22 }); txt(1000, 112, 'bypass HT-200', 'tagl', svg, 'middle');
 
-    // ---------- V-102 heater treater
-    g = hvessel('V-102', 1000, 215, 200, 100, { lvl: 'LT-103', ifc: 'LI-104', boot: 1085, sub: 'Heater treater' });
+    // ---------- HT-200 heater treater
+    g = hvessel('HT-200', 1000, 215, 200, 100, { lvl: 'LT-103', ifc: 'LI-104', boot: 1085, sub: 'Heater treater' });
     var ft = S('path', { d: 'M1022,290 H1150 q16,0 16,-12 q0,-12 -16,-12 H1060', 'class': 'firetube' }, g);
     var st = S('path', { d: 'M1166,270 V160 H1182 V270', 'class': 'stack' }); txt(1174, 152, 'stack', 'tagl', svg, 'middle');
     var htFlame = flame(1008, 288, 'off'); txt(1008, 320, 'E-103', 'tagl', svg, 'middle');
@@ -337,7 +350,10 @@
 
     // ---------- MF-2
     var gm = eqGroup('MF-2'); S('rect', { x: 1380, y: 125, width: 20, height: 220, rx: 6, 'class': 'vessel', 'data-box': 'MF-2' }, gm); txt(1390, 112, 'MF-2', 'eqn', gm, 'middle');
-    hvalve('BV-SC', 1390, 430, { lx: 18, ly: 2, la: 'start' }); txt(1408, 442, 'bypass C-101', 'tagl');
+    hvalve('GV-1', 1430, 270, { ly: 22 }); txt(1430, 247, 'stripper in', 'tagl', svg, 'middle');
+    hvalve('GV-2', 1510, 490, { lx: 18, ly: 2, la: 'start' }); txt(1528, 480, 'stripper out', 'tagl');
+    hvalve('GV-3', 1362, 420, { v: true, lx: -16, ly: 2, la: 'end' }); hvalve('GV-4', 1418, 420, { v: true, lx: 16, ly: 2, la: 'start' });
+    txt(1390, 402, 'bypass to', 'tagl', svg, 'middle'); txt(1390, 413, 'cooler', 'tagl', svg, 'middle');
 
     // ---------- C-101 stripping column + E-104 reboiler
     g = vvessel('C-101', 1470, 130, 80, 270, { lvl: 'LT-105', sump: 0.28, sub: 'Stripping column' });
@@ -362,30 +378,31 @@
     S('circle', { cx: 670, cy: 590, r: 18, 'class': 'vessel', 'data-box': 'E-105' }, ge); var fan = S('path', { d: 'M652,590 H688 M670,572 V608 M657,577 L683,603 M683,577 L657,603', 'class': 'zig fan' }, ge);
     S('path', { d: 'M670,608 V610', 'class': 'pipe' }, ge); txt(670, 694, 'E-105 oil cooler', 'tagl', ge, 'middle');
     upd.push(function () { var sp = s().valves['FAN-105'].pos; fan.setAttribute('class', 'zig fan' + (sp > 5 && s().power.on ? ' spin' : '')); fan.style.animationDuration = (sp > 5 ? (2.2 - sp / 60).toFixed(2) : 0) + 's'; });
+    hvalve('BV-CL', 680, 530, { ly: -26 }); txt(716, 513, 'cooler bypass', 'tagl'); bubble(825, 585, 'TT-110', 'TT-110');
     ctl('TIC-105', 640, 760, { dx: 56, dy: 0, nob: false, v: false, ty: 22 }); bubble(770, 590, 'TT-105', 'TT-105');
     S('path', { d: 'M640,740 V672', 'class': 'dash' });
 
-    // ---------- V-103 2nd stage separator
-    g = hvessel('V-103', 860, 600, 160, 80, { lvl: 'LT-106', ifc: 'LI-107', boot: 940, sub: '2nd stage separator' });
+    // ---------- V-110 2nd stage separator
+    g = hvessel('V-110', 860, 600, 160, 80, { lvl: 'LT-106', ifc: 'LI-107', boot: 940, sub: '2nd stage separator' });
     inside(g, 872, 626, 'L', 'LT-106'); inside(g, 872, 641, 'P', 'PT-103'); inside(g, 872, 656, 'BSW', 'AT-101');
     ctl('PIC-103', 990, 560, { v: true, dx: 56, dy: 0 }); ctl('LIC-106', 1060, 640, { dy: -46 }); ctl('LIC-107', 940, 745, { v: true, dx: 56, dy: 0 });
     hvalve('DR-103', 970, 700, { lx: 14, ly: 4, la: 'start' });
     bubble(880, 570, 'AT-101', 'AT-101', { noval: false }); bubble(920, 570, 'AT-102', 'AT-102');
     // route valves
-    var rt = S('g', { 'class': 'eq', 'data-id': 'T-101' }); rt.addEventListener('click', function () { openSheet('T-101'); });
+    var rt = S('g', { 'class': 'eq', 'data-id': 'TK-410' }); rt.addEventListener('click', function () { openSheet('TK-410'); });
     var xt = S('path', { d: 'M1121,634 L1139,646 L1139,634 L1121,646 Z', 'class': 'vlv' }, rt), xs = S('path', { d: 'M1094,776 L1106,794 L1118,776 L1094,794 Z', 'class': 'vlv', transform: 'rotate(0)' }, rt);
-    txt(1130, 664, 'to T-101', 'tagl', rt, 'middle'); txt(1112, 812, 'to slop', 'tagl', rt, 'start');
+    txt(1130, 664, 'to TK-410', 'tagl', rt, 'middle'); txt(1112, 812, 'to slop', 'tagl', rt, 'start');
     upd.push(function () { xt.setAttribute('fill-opacity', s().routeNow === 'TANK' ? .9 : .1); xs.setAttribute('fill-opacity', s().routeNow === 'SLOP' ? .9 : .1); });
 
-    // ---------- T-101 and export
-    g = tank('T-101', 1170, 560, 140, 180, { lvl: 'LT-201', sub: 'Storage tank' }); inside(g, 1180, 600, 'L', 'LT-201'); inside(g, 1180, 616, 'BSW', 'AT-201');
+    // ---------- TK-410 and export
+    g = tank('TK-410', 1170, 560, 140, 180, { lvl: 'LT-201', sub: 'Storage tank' }); inside(g, 1180, 600, 'L', 'LT-201'); inside(g, 1180, 616, 'BSW', 'AT-201');
     pump('P-201A', 1385, 670); pump('P-201B', 1385, 730);
     ctl('FIC-201', 1560, 700, { dy: -46 }); bubble(1660, 640, 'FT-201', 'FT-201'); txt(1540, 748, 'EXPORT PIPELINE ►', 'eqn', svg);
 
-    // ---------- T-102 slop tank, T-301 water, disposal pumps
-    g = tank('T-102', 1150, 810, 100, 120, { lvl: 'LT-202', oil: '#7a6a30', sub: 'Slop tank' }); inside(g, 1160, 850, 'L', 'LT-202');
-    pump('P-501', 1320, 890); txt(1350, 884, '→ SC-101 recycle', 'tagl'); pipe('M1250,890 H1306', 'drain', function () { return s().pumps['P-501'] === 'RUNNING' ? 1 : 0; });
-    g = tank('T-301', 60, 790, 90, 140, { lvl: 'LT-301', oil: '#1f8f84', sub: 'Produced water' }); inside(g, 68, 830, 'L', 'LT-301'); inside(g, 68, 846, 'OiW', 'AT-301');
+    // ---------- TK-430 slop tank, TK-420 water, disposal pumps
+    g = tank('TK-430', 1150, 810, 100, 120, { lvl: 'LT-202', oil: '#7a6a30', sub: 'Slop tank' }); inside(g, 1160, 850, 'L', 'LT-202');
+    pump('P-501', 1320, 890); txt(1350, 884, '→ V-001 recycle', 'tagl'); pipe('M1250,890 H1306', 'drain', function () { return s().pumps['P-501'] === 'RUNNING' ? 1 : 0; });
+    g = tank('TK-420', 60, 790, 90, 140, { lvl: 'LT-301', oil: '#1f8f84', sub: 'Produced water' }); inside(g, 68, 830, 'L', 'LT-301'); inside(g, 68, 846, 'OiW', 'AT-301');
     pump('P-301A', 230, 860); pump('P-301B', 290, 860); ctl('LIC-301', 380, 860, { dy: -46 }); txt(430, 840, 'DISPOSAL ►', 'eqn');
     bubble(190, 930, 'FT-301', 'FT-301');
 
@@ -395,7 +412,7 @@
     var gf = eqGroup('FLARE'); S('rect', { x: 1843, y: 100, width: 14, height: 160, 'class': 'vessel', 'data-box': 'FLARE' }, gf); var fl = flame(1850, 92, 'ON'); fl.setAttribute('transform', 'translate(1850 92) scale(2.2) translate(-1850 -92)');
     var pil = txt(1850, 280, '', 'in', gf, 'middle'); txt(1850, 296, 'FL-401', 'eqn', gf, 'middle'); S('rect', { x: 1800, y: 60, width: 100, height: 40, fill: 'transparent' }, gf);
     upd.push(function () { var p = s().flare.pilot, big = s().flare.flow > 1500; fl.setAttribute('class', 'flame ' + (p === 'ON' ? 'ON' : 'off') + (big ? ' big' : '')); pil.textContent = 'PILOT ' + p; pil.style.fill = p === 'ON' ? '#a9f0c7' : '#ff6b6b'; });
-    bubble(1625, 120, 'PT-401', 'PT-401'); bubble(1650, 200, 'FT-401', 'FT-401');
+    bubble(1625, 120, 'PT-401', 'PT-401'); bubble(1650, 176, 'FT-401', 'FT-401');
     var psvFK = S('path', { d: 'M1740,100 V84 m-6,0 h12 l-6,-10 Z', 'class': 'psv' }); upd.push(function () { psvFK.setAttribute('class', 'psv' + (s().fk.psv ? ' lift' : '')); });
     txt(1790, 322 + 38, 'to slop ▼', 'tagl', svg, 'middle');
 
@@ -410,6 +427,19 @@
     function pkg(id, x, y, w, hg, title) { var g = eqGroup(id); S('rect', { x: x, y: y, width: w, height: hg, rx: 8, 'class': 'vessel', 'data-box': id }, g); txt(x + 10, y + 20, title, 'eqn', g); return g; }
     function dyn(g, x, y, fn, anchor) { var e = txt(x, y, '', 'in', g, anchor); upd.push(function () { var r = fn(); if (e.textContent !== r[0]) e.textContent = r[0]; e.style.fill = r[1] || ''; }); return e; }
     var RED = '#ff6b6b', GRN = '#a9f0c7', YEL = '#ffd479';
+    // ---- N2 package (stripping gas), TK-410 PVRV, cold vent valve and LP flare FL-402
+    var gn2 = pkg('N2PKG', 1568, 222, 126, 72, 'N2 PACKAGE');
+    dyn(gn2, 1578, 254, function () { var st = s().n2.pkg; return ['N2-PKG ' + st, st === 'RUNNING' ? GRN : st === 'TRIPPED' ? RED : st === 'STARTING' ? YEL : '']; });
+    inside(gn2, 1578, 269, 'HDR', 'PT-N2'); inside(gn2, 1578, 284, 'FLOW', 'FT-N2');
+    hvalve('XV-N2', 1575, 335, { ly: -20 });
+    var psvTK = S('path', { d: 'M1200,553 V541 m-5,0 h10 l-5,-8 Z', 'class': 'psv' }); txt(1190, 538, 'PVRV', 'tagl', svg, 'end');
+    upd.push(function () { psvTK.setAttribute('class', 'psv' + (s().tank.lift ? ' lift' : '')); });
+    hvalve('VENT-410', 1470, 570, { v: true, lx: -16, ly: 2, la: 'end' }); txt(1384, 550, 'cold vent to LP flare', 'tagl');
+    bubble(1340, 578, 'PT-410', 'PT-410'); bubble(1560, 590, 'FT-405', 'FT-405');
+    var glp = eqGroup('LPF'); S('rect', { x: 1500, y: 548, width: 14, height: 92, 'class': 'vessel', 'data-box': 'LPF' }, glp);
+    var flp = flame(1507, 540, 'ON'); flp.setAttribute('transform', 'translate(1507 540) scale(1.5) translate(-1507 -540)');
+    var lpt = txt(1507, 690, '', 'in', glp, 'middle'); txt(1507, 660, 'LP FLARE', 'eqn', glp, 'middle'); txt(1507, 674, 'FL-402', 'tagl', glp, 'middle'); S('rect', { x: 1480, y: 520, width: 60, height: 130, fill: 'transparent' }, glp);
+    upd.push(function () { var p = s().lpf.pilot; flp.setAttribute('class', 'flame ' + (p === 'ON' ? 'ON' : 'off') + (s().lpf.flow > 120 ? ' big' : '')); lpt.textContent = 'PILOT ' + p; lpt.style.fill = p === 'ON' ? '#a9f0c7' : '#ff6b6b'; });
     var gl = pkg('LACT', 1700, 610, 190, 175, 'LACT SKID');
     pipe('M1664,700 H1890', '', function () { return s().exp.q; });
     bubble(1745, 652, 'FT-202', 'FT-202'); bubble(1805, 652, 'AT-202', 'AT-202');
@@ -420,7 +450,7 @@
     dyn(gl, 1710, 770, function () { var l = s().lact; return [l.divert ? 'DIVERT TO SLOP' : l.prove > 0 ? 'PROVING ' + Math.ceil(l.prove) + ' s' : 'ON SPEC · FLOW TO PIPELINE', l.divert ? RED : l.prove > 0 ? YEL : GRN]; });
     var gfu = pkg('FUELGAS', 440, 850, 165, 135, 'FUEL GAS & PURGE');
     inside(gfu, 452, 882, 'FG HDR', 'PT-902'); inside(gfu, 452, 900, 'PURGE', 'FT-402'); inside(gfu, 452, 918, 'SEAL DRUM', 'LT-402');
-    dyn(gfu, 452, 940, function () { var ok = s().fg.P > 2.5; return [ok ? 'Burner gas available' : 'FUEL GAS LOW', ok ? GRN : RED]; }); txt(452, 966, 'source: V-101 gas', 'tagl', gfu);
+    dyn(gfu, 452, 940, function () { var ok = s().fg.P > 2.5; return [ok ? 'Burner gas available' : 'FUEL GAS LOW', ok ? GRN : RED]; }); txt(452, 966, 'source: V-100 gas', 'tagl', gfu);
     var gwt = pkg('WTRT', 613, 850, 165, 135, 'WATER TREATMENT');
     S('path', { d: 'M728,894 h30 v18 l-15,24 l-15,-24 Z', 'class': 'vessel' }, gwt); txt(743, 908, 'HC', 'in', gwt, 'middle');
     inside(gwt, 625, 884, 'IN', 'AT-300'); inside(gwt, 625, 902, 'OiW', 'AT-301');
@@ -431,8 +461,8 @@
     dyn(gch, 798, 900, function () { return ['CORR. INHIB. ' + s().chem.ci + ' ppm', '']; });
     dyn(gch, 798, 918, function () { return ['ANTIFOAM ' + s().chem.af + ' ppm', s().flt.foamEff > 0.15 ? YEL : '']; });
     inside(gch, 798, 940, 'CORROSION', 'AT-501'); txt(798, 966, 'mpy (field of probe)', 'tagl', gch);
-    var gpw = pkg('POWER', 959, 850, 165, 135, 'POWER GENERATION');
-    ['G-1', 'G-2', 'G-3'].forEach(function (gn, i) { dyn(gpw, 971, 880 + i * 16, function () { var st = s().gen[gn]; return [gn + ' ' + st, st === 'RUNNING' ? GRN : st === 'TRIPPED' ? RED : st === 'STARTING' ? YEL : '']; }); });
+    var gpw = pkg('POWER', 959, 850, 165, 135, 'POWER 2 x GEN');
+    ['G-1', 'G-2'].forEach(function (gn, i) { dyn(gpw, 971, 880 + i * 16, function () { var st = s().gen[gn]; return [gn + ' ' + st, st === 'RUNNING' ? GRN : st === 'TRIPPED' ? RED : st === 'STARTING' ? YEL : '']; }); });
     dyn(gpw, 971, 936, function () { var pw = s().power; return ['LOAD ' + Math.round(pw.demand) + ' / ' + Math.round(pw.cap) + ' kW', pw.shed ? RED : '']; });
     dyn(gpw, 971, 954, function () { var pw = s().power; return [!pw.on ? 'BLACKOUT' : pw.shed ? 'LOAD SHED ACTIVE' : 'Bus healthy', !pw.on || pw.shed ? RED : GRN]; });
     ['W-1', 'W-2', 'W-3'].forEach(function (w, i) { var y = 150 + i * 90; dyn(svg, 97, y - 7, function () { var q = s().wells[w]; return ['CK ' + Math.round(q.choke) + '%', q.open ? '' : '#7d8ba0']; }); });
@@ -440,6 +470,30 @@
     dyn(svg, 1896, 324, function () { return ['PURGE ' + Math.round(tg('FT-402').v), '']; }, 'end');
     if (cfg.ownerName) { var wm = txt(1876, 977, cfg.ownerName, '', svg, 'end'); wm.style.cssText = 'font:700 22px system-ui;fill:#3a85d6;opacity:.85'; }
     if (cfg.credit) { var wm2 = txt(1876, 996, cfg.credit, '', svg, 'end'); wm2.style.cssText = 'font:600 16px system-ui;fill:#6f8fb5;opacity:.95'; }
+    // ---------- F&G zone overlay: dashed zone outlines + G / H / F status chips
+    var ZR = { Z1: [[30, 95, 430, 350]], Z2: [[465, 95, 760, 350]], Z3: [[1230, 95, 470, 350]], Z4: [[470, 540, 1050, 240]], Z5: [[30, 775, 470, 215], [1135, 795, 230, 150]], Z6: [[430, 840, 705, 150]], Z7: [[1705, 60, 195, 300], [1590, 455, 160, 135]] };
+    var fgCols = { ok: '#2f7d57', low: '#e0b43a', high: '#ff4d4d', ovr: '#6b7a90', blind: '#c04bd6' };
+    plant.FG_ZONES.forEach(function (zz) {
+      var Z = zz[0], outs = [], chips = [];
+      ZR[Z].forEach(function (r, ri) {
+        var o = S('rect', { x: r[0], y: r[1], width: r[2], height: r[3], rx: 10, fill: 'none', 'stroke-dasharray': '10 7', 'stroke-width': 1.6, 'stroke-opacity': .55, stroke: fgCols.ok, 'pointer-events': 'none' }); outs.push(o);
+        if (ri === 0) {
+          var cg = S('g', { 'class': 'fgchip', style: 'cursor:pointer' }); cg.addEventListener('click', function () { gotoFG(Z, 'fg'); });
+          S('rect', { x: r[0] + 5, y: r[1] + 4, width: 78, height: 20, rx: 5, fill: '#0b141f', 'fill-opacity': .85, stroke: '#2a3b52' }, cg);
+          txt(r[0] + 10, r[1] + 18, Z, 'tagl', cg);
+          FG_KEYS_L.forEach(function (k, ki) { var sq = S('rect', { x: r[0] + 30 + ki * 17, y: r[1] + 8, width: 13, height: 13, rx: 2, fill: fgCols.ok }, cg); chips.push([k, sq]); txt(r[0] + 36.5 + ki * 17, r[1] + 18.5, k === 'gas' ? 'G' : k === 'h2s' ? 'H' : 'F', 'bt', cg, 'middle'); });
+        }
+      });
+      upd.push(function () {
+        var worst = 'ok';
+        chips.forEach(function (c) {
+          var zr = s().fgs.z[Z][c[0]], pre = plant.FG_TYPES[c[0]].pre, st = zr.blind ? 'blind' : (zr.conf || zr.high) ? 'high' : zr.low ? 'low' : (s().fgs.ovr[pre + '-' + Z + '-A'] !== undefined || s().fgs.ovr[pre + '-' + Z + '-B'] !== undefined) ? 'ovr' : 'ok';
+          if (c[1].getAttribute('fill') !== fgCols[st]) c[1].setAttribute('fill', fgCols[st]);
+          var rank = { ok: 0, ovr: 1, low: 2, blind: 3, high: 4 }; if (rank[st] > rank[worst]) worst = st;
+        });
+        outs.forEach(function (o) { o.setAttribute('stroke', fgCols[worst]); o.setAttribute('stroke-opacity', worst === 'ok' ? .45 : .95); });
+      });
+    });
     // alarm highlight on equipment outlines
     upd.push(function () {
       var worst = {}; plant.activeAlarms().forEach(function (a) { if (a.state === 'RTN_UNACK') return; var e = ALM_EQ[a.id]; if (e && (!worst[e] || a.pr < worst[e])) worst[e] = a.pr; });
@@ -518,7 +572,7 @@
     tags.forEach(function (t) { var q = tg(t), b = h('b', { text: '--' }), sm = h('small', { text: t + ' ' + q.desc + ' (' + (UNIT[q.unit] || q.unit) + ')' }); g.appendChild(h('div', null, [sm, b])); sheetUpd.push(function () { var z = tg(t), al = alarmOf(t); b.textContent = fmt(z.v, z.unit); b.style.color = al === 1 ? '#ff6b6b' : al === 2 ? '#ffb347' : al === 3 ? '#ffe066' : ''; }); });
     return h('div', { 'class': 'fp' }, [g]);
   }
-  function stateOf(id) { var q = s(); if (id.charAt(0) === 'G') return q.gen[id]; return id === 'HO-1' ? q.ho.burner : id === 'E-103' ? q.ht.burner : q.pumps[id]; }
+  function stateOf(id) { var q = s(); if (id === 'N2-PKG') return q.n2.pkg; if (id.charAt(0) === 'G') return q.gen[id]; return id === 'HO-1' ? q.ho.burner : id === 'E-103' ? q.ht.burner : q.pumps[id]; }
   function equipWidget(id) {
     var wrap = h('div', { 'class': 'fp' }), st = h('span', { 'class': 'status', text: '' });
     wrap.appendChild(h('h4', null, [h('span', { text: EQ_NAME[id] || (id + ' pump') }), st]));
@@ -538,10 +592,10 @@
   function special(kind, body) {
     var p = h('div', { 'class': 'fp' }), k = kind.split(':');
     if (k[0] === 'dem') {
-      p.appendChild(h('h4', null, [h('span', { text: 'Demulsifier injection (upstream of SC-101)' })]));
+      p.appendChild(h('h4', null, [h('span', { text: 'Demulsifier injection (upstream of V-001)' })]));
       p.appendChild(sliderRow('Dose', 0, 50, 1, function () { return s().dem; }, function (v) { act('dem', null, v); }, 'ppm'));
     } else if (k[0] === 'drain') {
-      p.appendChild(h('h4', null, [h('span', { text: 'Drain valve ' + k[1] + ' → drain header → T-102 slop' })]));
+      p.appendChild(h('h4', null, [h('span', { text: 'Drain valve ' + k[1] + ' → drain header → TK-430 slop' })]));
       p.appendChild(sliderRow(k[1], 0, 100, 5, function () { return s().hv[k[1]]; }, function (v) { act('hv', k[1], v); }, '%'));
       p.appendChild(h('p', { 'class': 'note', text: 'Drains take water first, then oil. Use for water draw-off or emergency level reduction only.' }));
     } else if (k[0] === 'auto') {
@@ -550,8 +604,8 @@
       p.appendChild(h('h4', null, [h('span', { text: grp + ' standby auto-start on duty-pump trip' }), st]));
       p.appendChild(h('div', { 'class': 'ctl' }, [h('button', { 'class': 'go', text: 'ARM', onclick: function () { act('auto', grp, true); } }), h('button', { text: 'DISARM', onclick: function () { act('auto', grp, false); } })]));
     } else if (k[0] === 'route') {
-      p.appendChild(h('h4', null, [h('span', { text: 'Crude routing from V-103' })]));
-      var btns = ['AUTO', 'TANK', 'SLOP'].map(function (r) { var b = h('button', { text: r === 'AUTO' ? 'AUTO (divert off-spec)' : r === 'TANK' ? 'To T-101' : 'To T-102 slop', onclick: function () { act('route', null, r); } }); sheetUpd.push(function () { b.className = s().route === r ? 'primary' : ''; }); return b; });
+      p.appendChild(h('h4', null, [h('span', { text: 'Crude routing from V-110' })]));
+      var btns = ['AUTO', 'TANK', 'SLOP'].map(function (r) { var b = h('button', { text: r === 'AUTO' ? 'AUTO (divert off-spec)' : r === 'TANK' ? 'To TK-410' : 'To TK-430 slop', onclick: function () { act('route', null, r); } }); sheetUpd.push(function () { b.className = s().route === r ? 'primary' : ''; }); return b; });
       p.appendChild(h('div', { 'class': 'ctl' }, btns));
     } else if (k[0] === 'util') {
       p.appendChild(h('h4', null, [h('span', { text: 'Instrument air compressors & power' })]));
@@ -571,25 +625,25 @@
       p.appendChild(h('h4', null, [h('span', { text: 'Fuel gas header and flare seal drum' })]));
       p.appendChild(kvRow('Burners permitted', function () { return s().fg.P > 2.5 ? 'Yes (PT-902 above 2.5 barg)' : 'NO, fuel gas too low'; }));
       p.appendChild(kvRow('Seal drum level', function () { return Math.round(s().seal.lvl) + ' % (normal 60 to 80 %)'; }));
-      p.appendChild(h('p', { 'class': 'note', text: 'Fuel gas is taken from V-101 gas. If V-101 pressure falls (low production, cold start) PT-902 drops and the burners trip at 2.0 barg. Purge gas keeps the flare header positive; a low seal drum level risks flashback.' }));
+      p.appendChild(h('p', { 'class': 'note', text: 'Fuel gas is taken from V-100 gas. If V-100 pressure falls (low production, cold start) PT-902 drops and the burners trip at 2.0 barg. Purge gas keeps the flare header positive; a low seal drum level risks flashback.' }));
     } else if (k[0] === 'wtrt') {
-      p.appendChild(h('h4', null, [h('span', { text: 'Hydrocyclone and T-301 skimming' })]));
+      p.appendChild(h('h4', null, [h('span', { text: 'Hydrocyclone and TK-420 skimming' })]));
       p.appendChild(kvRow('Hydrocyclone efficiency', function () { return Math.round(s().wt.eff * 100) + ' %'; }));
       p.appendChild(kvRow('Backwash / skim timers', function () { var w = s().wt; return Math.ceil(w.back) + ' s / ' + Math.ceil(w.skim) + ' s'; }));
-      p.appendChild(h('div', { 'class': 'ctl' }, [h('button', { 'class': 'go', text: 'BACKWASH (5 min)', onclick: function () { act('backwash'); } }), h('button', { text: 'SKIM T-301 (5 min)', onclick: function () { act('skim'); } })]));
+      p.appendChild(h('div', { 'class': 'ctl' }, [h('button', { 'class': 'go', text: 'BACKWASH (5 min)', onclick: function () { act('backwash'); } }), h('button', { text: 'SKIM TK-420 (5 min)', onclick: function () { act('skim'); } })]));
       p.appendChild(h('p', { 'class': 'note', text: 'Oil in water above 40 ppm alarms and above 100 ppm is a disposal-limit breach. Fouling lowers efficiency; backwashing restores it over about 5 min, skimming helps while it recovers.' }));
     } else if (k[0] === 'chem') {
       p.appendChild(h('h4', null, [h('span', { text: 'Chemical injection doses' })]));
-      p.appendChild(sliderRow('Demulsifier (upstream SC-101)', 0, 50, 1, function () { return s().dem; }, function (v) { act('dem', null, v); }, 'ppm'));
+      p.appendChild(sliderRow('Demulsifier (upstream V-001)', 0, 50, 1, function () { return s().dem; }, function (v) { act('dem', null, v); }, 'ppm'));
       p.appendChild(sliderRow('Corrosion inhibitor', 0, 30, 1, function () { return s().chem.ci; }, function (v) { act('chem', 'ci', v); }, 'ppm'));
-      p.appendChild(sliderRow('Antifoam (V-101)', 0, 30, 1, function () { return s().chem.af; }, function (v) { act('chem', 'af', v); }, 'ppm'));
-      p.appendChild(h('p', { 'class': 'note', text: 'More demulsifier helps water break out but costs money. Corrosion inhibitor lowers the corrosion rate (AT-501); antifoam suppresses foam in V-101. Over-dosing is waste, under-dosing shows up as alarms.' }));
+      p.appendChild(sliderRow('Antifoam (V-100)', 0, 30, 1, function () { return s().chem.af; }, function (v) { act('chem', 'af', v); }, 'ppm'));
+      p.appendChild(h('p', { 'class': 'note', text: 'More demulsifier helps water break out but costs money. Corrosion inhibitor lowers the corrosion rate (AT-501); antifoam suppresses foam in V-100. Over-dosing is waste, under-dosing shows up as alarms.' }));
     } else if (k[0] === 'power') {
-      p.appendChild(h('h4', null, [h('span', { text: 'Site power: 3 x generator, load shedding' })]));
+      p.appendChild(h('h4', null, [h('span', { text: 'Site power: 2 x generator, load shedding' })]));
       p.appendChild(kvRow('Load / capacity', function () { var pw = s().power; return Math.round(pw.demand) + ' / ' + Math.round(pw.cap) + ' kW'; }));
       p.appendChild(kvRow('Load shedding', function () { return s().power.shed ? 'ACTIVE (P-301/P-501 tripped, fan limited)' : 'Inactive'; }));
       p.appendChild(h('div', { 'class': 'ctl' }, [h('button', { 'class': 'go', text: 'RESET LOAD SHED', onclick: function () { act('shedReset'); } }), h('button', { text: 'RESTORE MAIN POWER', onclick: function () { act('power', null, true); } })]));
-      p.appendChild(h('p', { 'class': 'note', text: 'Start a generator (60 s run-up) before resetting load shedding: one generator cannot carry the full plant. After a trip restart disposal pumps P-301A/B and P-501 manually.' }));
+      p.appendChild(h('p', { 'class': 'note', text: 'Two generators share the site load. One generator cannot carry the full plant: if one trips the system sheds the disposal and slop pumps. Reset the trip, restart the machine (60 s run-up), then reset load shedding and restart P-301A/B and P-501.' }));
     } else if (k[0] === 'wells') {
       p.appendChild(h('h4', null, [h('span', { text: 'Wells (open / shut-in)' })]));
       ['W-1', 'W-2', 'W-3'].forEach(function (w) { var st = h('span', { 'class': 'status' }); sheetUpd.push(function () { var o = s().wells[w].open; st.textContent = o ? 'OPEN' : 'SHUT-IN'; st.className = 'status ' + (o ? 'RUNNING' : 'STOPPED'); }); p.appendChild(h('div', { 'class': 'row' }, [h('span', { 'class': 'k', text: w + ' (' + Math.round(s().wells[w].share * 100) + '% of rate)' }), st, h('button', { 'class': 'go', text: 'OPEN', onclick: function () { act('well', w, true); } }), h('button', { text: 'SHUT IN', onclick: function () { act('well', w, false); } })])); });
@@ -609,17 +663,42 @@
       p.appendChild(h('div', { 'class': 'ctl' }, [h('button', { 'class': 'go', text: 'OPEN (after ESD reset)', onclick: function () { act('openInlet'); } }), h('button', { text: 'CLOSE', onclick: function () { act('closeInlet'); } })]));
       p.appendChild(h('div', { 'class': 'ctl' }, [h('button', { text: 'BDV-001 OPEN', onclick: function () { act('bdv', null, true); } }), h('button', { text: 'BDV-001 CLOSE', onclick: function () { act('bdv', null, false); } })]));
     } else if (k[0] === 'mf2') {
-      p.appendChild(h('h4', null, [h('span', { text: 'MF-2 bypass hand valves' })]));
-      p.appendChild(sliderRow('BV-HT (around V-102)', 0, 100, 5, function () { return s().hv['BV-HT']; }, function (v) { act('hv', 'BV-HT', v); }, '%'));
-      p.appendChild(sliderRow('BV-SC (around C-101)', 0, 100, 5, function () { return s().hv['BV-SC']; }, function (v) { act('hv', 'BV-SC', v); }, '%'));
-      p.appendChild(h('p', { 'class': 'note', text: 'BV-HT sends wet, cold crude straight from E-102 to MF-2 (BS&W up). BV-SC sends un-stripped crude past C-101 (RVP up). Keep both closed in normal operation.' }));
+      p.appendChild(h('h4', null, [h('span', { text: 'MF-2 oil manifold: gate valves and bypass' })]));
+      p.appendChild(sliderRow('GV-1 stripper inlet', 0, 100, 5, function () { return s().hv['GV-1']; }, function (v) { act('hv', 'GV-1', v); }, '%'));
+      p.appendChild(sliderRow('GV-2 stripper outlet', 0, 100, 5, function () { return s().hv['GV-2']; }, function (v) { act('hv', 'GV-2', v); }, '%'));
+      p.appendChild(sliderRow('GV-3 bypass (straight valve)', 0, 100, 5, function () { return s().hv['GV-3']; }, function (v) { act('hv', 'GV-3', v); }, '%'));
+      p.appendChild(sliderRow('GV-4 bypass (straight valve)', 0, 100, 5, function () { return s().hv['GV-4']; }, function (v) { act('hv', 'GV-4', v); }, '%'));
+      p.appendChild(sliderRow('BV-HT (around HT-200)', 0, 100, 5, function () { return s().hv['BV-HT']; }, function (v) { act('hv', 'BV-HT', v); }, '%'));
+      p.appendChild(h('p', { 'class': 'note', text: 'Normal line-up: GV-1 and GV-2 open (crude through C-101), GV-3 and GV-4 closed, BV-HT closed. Opening the straight bypass valves sends un-stripped crude to the cooler (RVP and H2S up). Closing GV-2 with GV-1 open fills the column; closing all four dead-heads the P-101 pumps. BV-HT sends cold wet crude from V-210 straight to MF-2 (BS&W up).' }));
       var fl = h('div', { 'class': 'row' }); var fv = h('span', { 'class': 'v' }); fl.appendChild(h('span', { 'class': 'k', text: 'Flow MF-2 / column / bypass' })); fl.appendChild(fv); p.appendChild(fl);
       sheetUpd.push(function () { var f = s().flows; fv.textContent = Math.round(f.qM) + ' / ' + Math.round(f.qCin) + ' / ' + Math.round(f.qDir + f.qBH) + ' m³/h'; });
+    } else if (k[0] === 'cooler') {
+      p.appendChild(h('h4', null, [h('span', { text: 'E-105 fan cooler bypass BV-CL (ties into V-110 inlet)' })]));
+      p.appendChild(sliderRow('BV-CL cooler bypass', 0, 100, 5, function () { return s().hv['BV-CL']; }, function (v) { act('hv', 'BV-CL', v); }, '%'));
+      p.appendChild(kvRow('V-110 inlet temperature (TT-110)', function () { return tg('TT-110').v.toFixed(1) + ' °C (alarm above 60)'; }));
+      p.appendChild(h('p', { 'class': 'note', text: 'Normally closed. Open it only when the cooler is isolated or fouled: hot crude reaches V-110 and the tank, gas and RVP rise.' }));
+    } else if (k[0] === 'n2') {
+      p.appendChild(h('h4', null, [h('span', { text: 'N2 stripping gas to C-101' })]));
+      p.appendChild(sliderRow('XV-N2 N2 flow valve', 0, 100, 5, function () { return s().hv['XV-N2']; }, function (v) { act('hv', 'XV-N2', v); }, '%'));
+      p.appendChild(kvRow('N2 flow / header pressure', function () { return Math.round(s().n2.flow) + ' Sm³/h / ' + s().n2.P.toFixed(1) + ' barg'; }));
+      p.appendChild(kvRow('Stripped crude H2S / RVP', function () { return tg('AT-103').v.toFixed(1) + ' ppm / ' + tg('AT-102').v.toFixed(1) + ' psi'; }));
+      p.appendChild(h('p', { 'class': 'note', text: 'N2 strips H2S and light ends in C-101 together with the reboiler. Normal valve position is about 50 %. Without N2 (package trip or valve shut) RVP and H2S rise and crude goes off-spec.' }));
+    } else if (k[0] === 'vent') {
+      p.appendChild(h('h4', null, [h('span', { text: 'TK-410 cold vent to LP flare' })]));
+      p.appendChild(sliderRow('VENT-410 vent valve', 0, 100, 5, function () { return s().hv['VENT-410']; }, function (v) { act('hv', 'VENT-410', v); }, '%'));
+      p.appendChild(kvRow('Vapour pressure PT-410', function () { var q = s().tank; return q.P.toFixed(1) + ' mbarg' + (q.lift ? '  PVRV LIFTING' : q.vac ? '  VACUUM RELIEF' : ''); }));
+      p.appendChild(kvRow('Vent flow to LP flare', function () { return Math.round(s().lpf.flow) + ' m³/h'; }));
+      p.appendChild(h('p', { 'class': 'note', text: 'Tank breathing goes to the LP flare. If VENT-410 is closed the pressure builds, the PVRV lifts (+35 mbarg) and hydrocarbon and H2S reach the tank farm; when exporting with the vent closed the tank pulls vacuum (PVRV opens at -3 mbarg).' }));
+    } else if (k[0] === 'lpf') {
+      var lps = h('span', { 'class': 'status' }); sheetUpd.push(function () { lps.textContent = s().lpf.pilot; lps.className = 'status ' + (s().lpf.pilot === 'ON' ? 'RUNNING' : 'TRIPPED'); });
+      p.appendChild(h('h4', null, [h('span', { text: 'LP flare pilot' }), lps]));
+      p.appendChild(h('div', { 'class': 'ctl' }, [h('button', { 'class': 'go', text: 'RE-IGNITE LP PILOT', onclick: function () { act('flareIgnite', 'LP'); } })]));
+      p.appendChild(kvRow('LP header pressure', function () { return (tg('PT-405').v * 1000).toFixed(0) + ' mbarg'; }));
     } else if (k[0] === 'hx1') {
-      p.appendChild(h('h4', null, [h('span', { text: 'E-101 heat recovery' })]));
+      p.appendChild(h('h4', null, [h('span', { text: 'HX-1 heat recovery' })]));
       var du = h('div', { 'class': 'row' }); var dv = h('span', { 'class': 'v' }); du.appendChild(h('span', { 'class': 'k', text: 'Fouling factor (instructor)' })); du.appendChild(dv); p.appendChild(du);
       sheetUpd.push(function () { dv.textContent = (plant.cfg.hx1.foul * 100).toFixed(0) + ' %'; });
-      p.appendChild(h('p', { 'class': 'note', text: 'Hot side: stripped crude from C-101. Cold side: SC-101 oil. Fouling lowers V-101 feed temperature, so E-102 and E-103 must work harder.' }));
+      p.appendChild(h('p', { 'class': 'note', text: 'Hot side: stripped crude from C-101. Cold side: V-001 oil. Fouling lowers V-100 feed temperature, so V-210 and E-103 must work harder.' }));
     } else if (k[0] === 'flare') {
       var ps = h('span', { 'class': 'status' }); sheetUpd.push(function () { ps.textContent = s().flare.pilot; ps.className = 'status ' + (s().flare.pilot === 'ON' ? 'RUNNING' : 'TRIPPED'); });
       p.appendChild(h('h4', null, [h('span', { text: 'Flare pilot' }), ps]));
@@ -633,12 +712,13 @@
     var body = $('sheetBody'); body.innerHTML = ''; sheetUpd = [];
     if (id.indexOf('LOOP:') === 0) { var lp = id.slice(5); $('sheetTitle').textContent = lp + ' · ' + LOOP_DEF[lp][1]; body.appendChild(loopWidget(lp)); var eq = TAG_EQ[LOOP_DEF[lp][9]]; if (eq) body.appendChild(h('div', { 'class': 'ctl' }, [h('button', { text: 'Open ' + eq + ' equipment page', onclick: function () { openSheet(eq); } })])); }
     else if (id.indexOf('INST:') === 0) { var tag = id.slice(5); $('sheetTitle').textContent = tag + ' · ' + (tg(tag) ? tg(tag).desc : ''); body.appendChild(tagGrid([tag])); var cv = h('canvas', { 'class': 'mini', style: 'height:120px' }); body.appendChild(cv); sheetUpd.push(function () { drawSimple(cv, tag); }); }
-    else if (id.indexOf('HV:') === 0) { var hv = id.slice(3); $('sheetTitle').textContent = hv + ' hand valve'; special(hv === 'BV-HT' || hv === 'BV-SC' ? 'mf2' : 'drain:' + hv, body); }
+    else if (id.indexOf('HV:') === 0) { var hv = id.slice(3); $('sheetTitle').textContent = hv + ' hand valve'; special(/^(BV-HT|GV-\d)$/.test(hv) ? 'mf2' : hv === 'BV-CL' ? 'cooler' : hv === 'XV-N2' ? 'n2' : hv === 'VENT-410' ? 'vent' : 'drain:' + hv, body); }
     else {
       var spec = EQ[id] || { title: id, tags: [] }; $('sheetTitle').textContent = spec.title;
       if (spec.tags && spec.tags.length) body.appendChild(tagGrid(spec.tags));
       (spec.equip || []).forEach(function (e) { body.appendChild(equipWidget(e)); });
       if (spec.special) special(spec.special, body);
+      (spec.extra || []).forEach(function (x) { special(x, body); });
       if (spec.drain) special('drain:' + spec.drain, body);
       (spec.loops || []).forEach(function (l) { body.appendChild(loopWidget(l)); });
     }
@@ -661,8 +741,8 @@
   window.addEventListener('popstate', closeSheet);
 
   // ------------------------------------------------------------------ control tab
-  var LOOP_GROUPS = [['Slug catcher SC-101', ['LIC-001', 'LIC-002', 'PIC-001']], ['Separation V-101 / E-102', ['LIC-101', 'LIC-102', 'PIC-101', 'TIC-103']], ['Hot oil & heater treater', ['TIC-101', 'TIC-102', 'LIC-103', 'LIC-104', 'PIC-102']],
-    ['Stripping column C-101', ['TIC-104', 'LIC-105', 'PIC-104']], ['Cooling & V-103', ['TIC-105', 'LIC-106', 'LIC-107', 'PIC-103']], ['Export / water / flare', ['FIC-201', 'LIC-301', 'LIC-401']]];
+  var LOOP_GROUPS = [['Slug catcher V-001', ['LIC-001', 'LIC-002', 'PIC-001']], ['Separation V-100 / V-210', ['LIC-101', 'LIC-102', 'PIC-101', 'TIC-103']], ['Hot oil & heater treater', ['TIC-101', 'TIC-102', 'LIC-103', 'LIC-104', 'PIC-102']],
+    ['Stripping column C-101', ['TIC-104', 'LIC-105', 'PIC-104']], ['Cooling & V-110', ['TIC-105', 'LIC-106', 'LIC-107', 'PIC-103']], ['Export / water / flare', ['FIC-201', 'LIC-301', 'LIC-401']]];
   function buildControl() {
     var root = $('controlList'); root.innerHTML = ''; var rows = [];
     root.appendChild(h('div', { 'class': 'loopRow', style: 'color:#8396ad;font-size:11px;margin:8px 8px 0' }, [h('div', { text: 'LOOP' }), h('div', { text: 'SERVICE' }), h('div', { 'class': 'num', text: 'PV' }), h('div', { 'class': 'num', text: 'SP' }), h('div', { 'class': 'num', text: 'OP' })]));
@@ -677,14 +757,14 @@
       root.appendChild(p);
     });
     var eqp = h('div', { 'class': 'panel' }, [h('h3', { text: 'Rotating equipment & fired heaters' })]);
-    ['HO-1', 'E-103', 'P-101A', 'P-101B', 'P-201A', 'P-201B', 'P-301A', 'P-301B', 'P-401A', 'P-401B', 'P-501'].forEach(function (id) {
-      var st = h('span', { 'class': 'status' }), tgt = id === 'E-103' ? 'V-102' : id === 'P-501' ? 'T-102' : id;
-      eqp.appendChild(h('div', { 'class': 'row', onclick: function () { openSheet(tgt); } }, [h('span', { 'class': 'k', text: id + ' ' + ({ 'HO-1': 'hot oil heater', 'E-103': 'treater burner', 'P-501': 'slop pump' }[id] || 'pump') }), st]));
+    ['HO-1', 'E-103', 'N2-PKG', 'G-1', 'G-2', 'P-101A', 'P-101B', 'P-201A', 'P-201B', 'P-301A', 'P-301B', 'P-401A', 'P-401B', 'P-501'].forEach(function (id) {
+      var st = h('span', { 'class': 'status' }), tgt = id === 'E-103' ? 'HT-200' : id === 'P-501' ? 'TK-430' : id === 'N2-PKG' ? 'N2PKG' : /^G-/.test(id) ? 'POWER' : id;
+      eqp.appendChild(h('div', { 'class': 'row', onclick: function () { openSheet(tgt); } }, [h('span', { 'class': 'k', text: id + ' ' + ({ 'HO-1': 'hot oil heater', 'E-103': 'treater burner', 'P-501': 'slop pump', 'N2-PKG': 'N2 package', 'G-1': 'generator', 'G-2': 'generator' }[id] || 'pump') }), st]));
       rows.push(function () { var v = stateOf(id); st.textContent = v; st.className = 'status ' + v; });
     });
     root.appendChild(eqp);
     var op = h('div', { 'class': 'panel' }, [h('h3', { text: 'Other plant items' })]);
-    [['MF-2', 'MF-2 bypass valves BV-HT / BV-SC'], ['T-101', 'Crude routing / T-101'], ['V-102', 'Demulsifier & drains'], ['V-401', 'FKOD / flare pilot'], ['WELLS', 'Wells / field conditions'], ['ESDV', 'Inlet ESDV / BDV'], ['UTIL', 'Utilities / power']].forEach(function (x) { op.appendChild(h('div', { 'class': 'row', onclick: function () { openSheet(x[0] === 'V-401' ? 'FLARE' : x[0]); } }, [h('span', { 'class': 'k', text: x[1] }), h('span', { text: '›' })])); });
+    [['MF-2', 'MF-2 gate valves GV-1..GV-4 / BV-HT'], ['N2PKG', 'N2 package / stripping gas'], ['LPF', 'LP flare / TK-410 vent'], ['E-105', 'Cooler bypass BV-CL'], ['TK-410', 'Crude routing / TK-410'], ['HT-200', 'Demulsifier & drains'], ['V-401', 'FKOD / flare pilot'], ['WELLS', 'Wells / field conditions'], ['ESDV', 'Inlet ESDV / BDV'], ['UTIL', 'Utilities / power']].forEach(function (x) { op.appendChild(h('div', { 'class': 'row', onclick: function () { openSheet(x[0] === 'V-401' ? 'FLARE' : x[0]); } }, [h('span', { 'class': 'k', text: x[1] }), h('span', { text: '›' })])); });
     root.appendChild(op);
     viewUpd.control = function () { rows.forEach(function (f) { f(); }); };
   }
@@ -704,7 +784,7 @@
     if (!list.length) p.appendChild(h('div', { 'class': 'row', text: 'No active alarms' }));
     list.forEach(function (a) {
       var unack = a.state === 'ACTIVE_UNACK' || a.state === 'RTN_UNACK', eq = ALM_EQ[a.id];
-      p.appendChild(h('div', { 'class': 'alm p' + a.pr + (unack ? ' unack' : '') + (a.state === 'RTN_UNACK' ? ' rtn' : ''), onclick: function () { if (eq) { tabTo('overview'); openSheet(eq); } } }, [
+      p.appendChild(h('div', { 'class': 'alm p' + a.pr + (unack ? ' unack' : '') + (a.state === 'RTN_UNACK' ? ' rtn' : ''), onclick: function () { if (eq === 'FGSTAB') { gotoFG(null, 'ovr'); } else if (eq && eq.indexOf('FGS:') === 0) { gotoFG(eq.slice(4), 'fg'); } else if (eq) { tabTo('overview'); openSheet(eq); } } }, [
         h('div', { 'class': 'pri' }),
         h('div', null, [h('b', { text: a.id }), h('small', { text: a.desc + (a.value ? ' · ' + a.value : '') }), h('small', { text: (a.state === 'RTN_UNACK' ? 'Returned to normal · ' : '') + clock(a.since) + (eq ? ' · ' + eq : '') })]),
         h('div', { 'class': 'btns' }, [h('button', { text: unack ? 'ACK' : '', onclick: function (e) { e.stopPropagation(); act('ack', a.id); renderAlarms(true); } }),
@@ -774,46 +854,126 @@
     copyText(rows.join('\n'), 'CSV copied (' + n + ' rows)');
   }
 
-  // ------------------------------------------------------------------ safety tab
-  var CE_CAUSES = [
-    ['PSHH-001 SC-101 pressure ≥ 15 barg', function () { return tg('PT-001'); }, 15, 1],
-    ['LSHH-001 SC-101 level ≥ 90 %', function () { return tg('LT-001'); }, 90, 1],
-    ['PSHH-101 V-101 pressure ≥ 8.5 barg', function () { return tg('PT-101'); }, 8.5, 1],
-    ['LSHH-101 V-101 level ≥ 90 %', function () { return tg('LT-101'); }, 90, 1],
-    ['LSHH-103 V-102 level ≥ 92 %', function () { return tg('LT-103'); }, 92, 1],
-    ['PSHH-102 V-102 pressure ≥ 4.5 barg', function () { return tg('PT-102'); }, 4.5, 1],
-    ['PSHH-401 Flare header ≥ 1.4 barg', function () { return tg('PT-401'); }, 1.4, 1],
-    ['LSHH-401 FKOD level ≥ 85 %', function () { return tg('LT-401'); }, 85, 1],
-    ['LSHH-201 T-101 level ≥ 95 %', function () { return tg('LT-201'); }, 95, 1],
-    ['Fire detection', function () { return { v: s().hazard.fire ? 1 : 0, unit: '' }; }, 1, 2],
-    ['Gas detection (operator confirm)', function () { return { v: s().hazard.gas ? 1 : 0, unit: '' }; }, 1, 2],
-    ['Manual ESD pushbutton', function () { return { v: 0, unit: '' }; }, 1, 2]
-  ];
-  var CE_EFFECTS = ['ESDV-001', 'HO-1 / E-103', 'P-101 / 201 / 301', 'BDV-001'];
-  var safetyBuilt = false;
+  // ------------------------------------------------------------------ safety tab: ESD / cause & effect / fire & gas / overrides
+  var fgSel = 'Z1', safeTab = 'ce';
+  var ST_COL = { ok: '#2f7d57', low: '#e0b43a', high: '#ff4d4d', ovr: '#6b7a90', blind: '#c04bd6', fault: '#e08a3a' };
+  function gotoFG(z, tab) { if (z) fgSel = z; safeTab = tab || 'fg'; tabTo('safety'); }
+  function mmss(sec) { sec = Math.max(0, Math.round(sec)); return Math.floor(sec / 60) + ':' + ('0' + (sec % 60)).slice(-2); }
+  function zoneStatus(Z) {
+    var worst = 'ok', rank = { ok: 0, ovr: 1, fault: 2, low: 3, blind: 4, high: 5 };
+    plant.FG_KEYS.forEach(function (k) {
+      var zr = s().fgs.z[Z][k], pre = plant.FG_TYPES[k].pre, st = zr.blind ? 'blind' : (zr.conf || zr.high) ? 'high' : zr.low ? 'low' : zr.fault ? 'fault' : (s().fgs.ovr[pre + '-' + Z + '-A'] !== undefined || s().fgs.ovr[pre + '-' + Z + '-B'] !== undefined) ? 'ovr' : 'ok';
+      if (rank[st] > rank[worst]) worst = st;
+    });
+    return worst;
+  }
+  function keySwitch() {
+    var box = h('div', { 'class': 'panel' }, [h('h3', { text: 'F&G inhibit key switch (override authority)' })]);
+    var st = h('span', { 'class': 'status' }), b1 = h('button', { 'class': 'primary', text: 'TURN KEY TO OVERRIDE', onclick: function () { act('fgKey', null, true); } }), b2 = h('button', { text: 'REMOVE KEY (NORMAL)', onclick: function () { act('fgKey', null, false); } });
+    box.appendChild(h('div', { 'class': 'row' }, [h('span', { 'class': 'k', text: 'Key position' }), st]));
+    box.appendChild(h('div', { 'class': 'ctl' }, [b1, b2]));
+    box.appendChild(h('p', { 'class': 'note', text: 'Overrides need the key in OVERRIDE and a work permit or shift-supervisor approval. Every override is logged, raises an alarm, auto-expires after 60 min, and leaves that zone with degraded voting (2oo2 becomes 1oo1) or blind if both detectors are overridden. Always DE-OVERRIDE as soon as the job is finished and remove the key.' }));
+    return { el: box, upd: function () { var k = s().fgs.key; st.textContent = k ? 'OVERRIDE' : 'NORMAL'; st.className = 'status ' + (k ? 'TRIPPED' : 'RUNNING'); b1.className = k ? '' : 'primary'; b2.className = k ? 'primary' : ''; } };
+  }
   function buildSafety() {
     var root = $('safetyView'); root.innerHTML = '';
+    var bar = h('div', { 'class': 'chips safetabs' });
+    [['ce', 'ESD & C&E'], ['fg', 'Fire & Gas'], ['ovr', 'Overrides']].forEach(function (x) { bar.appendChild(h('span', { 'class': 'chip' + (safeTab === x[0] ? ' on' : ''), text: x[1], onclick: function () { safeTab = x[0]; buildSafety(); } })); });
+    root.appendChild(bar);
+    var body = h('div'); root.appendChild(body);
+    delete viewUpd.safety;
+    if (safeTab === 'ce') safetyCE(body); else if (safeTab === 'fg') safetyFG(body); else safetyOVR(body);
+  }
+  function safetyCE(root) {
     var pbBox = h('div', { 'class': 'panel' }, [h('h3', { text: 'Shutdown controls' })]);
     var esd = h('button', { 'class': 'pb danger', text: 'ESD-1 — HOLD 1 s' }), t = null;
     var down = function () { esd.textContent = 'HOLDING…'; t = setTimeout(function () { act('esd'); esd.textContent = 'ESD-1 — HOLD 1 s'; t = null; }, 1000); }, up = function () { if (t) { clearTimeout(t); t = null; esd.textContent = 'ESD-1 — HOLD 1 s'; } };
     ['pointerdown'].forEach(function (e) { esd.addEventListener(e, down); }); ['pointerup', 'pointerleave', 'pointercancel'].forEach(function (e) { esd.addEventListener(e, up); });
     pbBox.appendChild(esd);
-    pbBox.appendChild(h('div', { 'class': 'ctl' }, [h('button', { text: 'PSD (process shutdown)', onclick: function () { act('psd'); } }), h('button', { 'class': 'primary', text: 'RESET ESD / PSD', onclick: function () { var r = act('resetESD'); if (r.ok) toast('ESD/PSD reset. Restart equipment manually.'); } }), h('button', { text: 'BDV OPEN', onclick: function () { act('bdv', null, true); } }), h('button', { text: 'BDV CLOSE', onclick: function () { act('bdv', null, false); } })]));
+    pbBox.appendChild(h('div', { 'class': 'ctl' }, [h('button', { text: 'PSD (process shutdown)', onclick: function () { act('psd'); } }), h('button', { 'class': 'primary', text: 'RESET ESD / PSD', onclick: function () { var r = act('resetESD'); if (r && r.ok) toast('ESD / PSD reset'); } }), h('button', { text: 'SILENCE HORN', onclick: function () { act('hornReset'); } })]));
     var st = h('div', { id: 'safetyStatus' }); pbBox.appendChild(st); root.appendChild(pbBox);
     var ce = h('div', { 'class': 'panel' }, [h('h3', { text: 'Cause & effect matrix (live)' })]);
-    var tbl = h('table', { 'class': 'ce' }); var hd = h('tr', null, [h('th', { text: 'Cause' }), h('th', { text: 'Value' }), h('th', { text: 'Level' })]);
-    CE_EFFECTS.forEach(function (e) { hd.appendChild(h('th', { text: e })); }); tbl.appendChild(hd);
-    var rows = CE_CAUSES.map(function (c) { var vc = h('td'), r = h('tr', null, [h('td', { text: c[0] }), vc, h('td', { text: c[3] === 1 ? 'PSD' : 'ESD-1' })]); var eff = c[3] === 1 ? [1, 1, 0, 0] : [1, 1, 1, 1]; eff.forEach(function (x) { r.appendChild(h('td', { 'class': x ? 'x' : '', text: x ? '●' : '' })); }); tbl.appendChild(r); return { r: r, vc: vc, c: c }; });
-    ce.appendChild(tbl); ce.appendChild(h('p', { 'class': 'note', text: 'PSD closes ESDV-001 and trips both fired heaters (HO-1, E-103). ESD-1 additionally trips transfer, export and disposal pumps and opens BDV-001 to flare. FKOD pumps P-401 stay available. Local trips (not shown): P-101 on V-102 low-low, P-201 on T-101 low-low, burners on level/temperature/fuel gas.' }));
+    var tbl = h('table', { 'class': 'ce' }), hd = h('tr', null, [h('th', { text: 'Cause' }), h('th', { text: 'Vote' }), h('th', { text: 'Level' })]);
+    plant.EFFECTS.forEach(function (e) { hd.appendChild(h('th', { text: e[0], title: e[1] })); }); hd.appendChild(h('th', { text: 'BYP' })); tbl.appendChild(hd);
+    var rowsEl = plant.CE().map(function (c) {
+      var bt = c.kind === 'process' ? h('button', { 'class': 'bypb', text: 'BYP', onclick: function () { var cur = plant.CE().filter(function (x) { return x.id === c.id; })[0]; act('ceByp', c.id, !(cur && cur.byp)); } }) : null;
+      var tdName = h('td', { text: c.id + '  ' + c.desc }), tdVote = h('td', { text: c.vote }), r = h('tr', null, [tdName, tdVote, h('td', { text: c.level === 1 ? 'PSD' : 'ESD-1' })]);
+      plant.EFFECTS.forEach(function (e) { r.appendChild(h('td', { 'class': c.level >= e[2] ? 'x' : '', text: c.level >= e[2] ? '●' : '' })); });
+      r.appendChild(h('td', null, [bt]));
+      if (c.kind === 'fg') r.onclick = function () { gotoFG(c.id.split('-')[1], 'fg'); };
+      tbl.appendChild(r); return { c: c, r: r, tdVote: tdVote, bt: bt };
+    });
+    ce.appendChild(h('div', { 'class': 'cescroll' }, [tbl]));
+    ce.appendChild(h('p', { 'class': 'note', text: 'PSD (level 1) closes ESDV-001, trips HO-1 and E-103 and sounds the general alarm. ESD-1 (level 2) additionally trips transfer, export, disposal and slop pumps and opens BDV-001 to flare; FKOD pumps P-401 stay available. Fire and gas causes need 2oo2 agreement of the zone detectors (1oo1 when one is overridden or faulty). BYP = SIS bypass of a process cause: needs the inhibit key, expires in 60 min.' }));
     root.appendChild(ce);
     viewUpd.safety = function () {
-      var q = s(); rows.forEach(function (o) { var v = o.c[1](); o.vc.textContent = (v.unit ? fmt(v.v, v.unit) : (v.v ? 'ACTIVE' : '—')); o.r.className = v.v >= o.c[2] ? 'act' : ''; });
+      var q = s(), live = plant.CE(), mp = {}; live.forEach(function (c) { mp[c.id] = c; });
+      rowsEl.forEach(function (o) { var c = mp[o.c.id]; o.tdVote.textContent = c.vote; o.r.className = c.byp ? 'byp' : c.active ? 'act' : ''; if (o.bt) { o.bt.className = 'bypb' + (c.byp ? ' on' : ''); o.bt.textContent = c.byp ? 'BYPASSED' : 'BYP'; } });
       st.innerHTML = '<div class="row"><span class="k">Shutdown state</span><span class="v">' + ['NORMAL', 'PSD', 'ESD-1'][q.esd.level] + '</span></div>' +
-        '<div class="row"><span class="k">Causes</span><span class="v">' + (q.esd.causes.join('; ') || '—') + '</span></div>' +
-        '<div class="row"><span class="k">ESDV-001</span><span class="v">' + Math.round(q.esdv.pos) + '%</span></div>' +
-        '<div class="row"><span class="k">Blowdown valve BDV-001</span><span class="v">' + (q.bdv ? 'OPEN' : 'closed') + '</span></div>' +
-        '<div class="row"><span class="k">PSV-001 SC / PSV-101 V-101 / PSV-102 V-102</span><span class="v">' + [q.sc.psv, q.v101.psv, q.ht.psv].map(function (x) { return x ? 'LIFT' : 'shut'; }).join(' / ') + '</span></div>' +
-        '<div class="row"><span class="k">Flare pilot</span><span class="v">' + q.flare.pilot + '</span></div>';
+        '<div class="row"><span class="k">Causes</span><span class="v">' + (q.esd.causes.join('; ').replace(/</g, '&lt;') || '—') + '</span></div>' +
+        '<div class="row"><span class="k">ESDV-001 / BDV-001</span><span class="v">' + Math.round(q.esdv.pos) + '% / ' + (q.bdv ? 'OPEN' : 'closed') + '</span></div>' +
+        '<div class="row"><span class="k">General alarm horn</span><span class="v">' + (q.horn ? 'SOUNDING' : 'silent') + '</span></div>' +
+        '<div class="row"><span class="k">PSV-001 / PSV-101 / PSV-102 / TK-410 PVRV</span><span class="v">' + [q.sc.psv, q.v101.psv, q.ht.psv, q.tank.lift].map(function (x) { return x ? 'LIFT' : 'shut'; }).join(' / ') + '</span></div>' +
+        '<div class="row"><span class="k">HP flare pilot / LP flare pilot</span><span class="v">' + q.flare.pilot + ' / ' + q.lpf.pilot + '</span></div>';
+    };
+  }
+  function safetyFG(root) {
+    var ks = keySwitch(); var zbar = h('div', { 'class': 'chips' }), zch = {};
+    plant.FG_ZONES.forEach(function (zz) { var c = h('span', { 'class': 'chip', text: zz[0], onclick: function () { fgSel = zz[0]; buildSafety(); } }); zch[zz[0]] = c; zbar.appendChild(c); });
+    root.appendChild(h('div', { 'class': 'panel' }, [h('h3', { text: 'Fire & gas zones' }), zbar]));
+    var Z = fgSel, zdef = plant.FG_ZONES.filter(function (z) { return z[0] === Z; })[0];
+    var card = h('div', { 'class': 'panel' }, [h('h3', { text: Z + ' · ' + zdef[1] })]); root.appendChild(card);
+    var voteRows = {}, detRows = {};
+    plant.FG_KEYS.forEach(function (k) {
+      var T0 = plant.FG_TYPES[k], vs = h('span', { 'class': 'v' });
+      card.appendChild(h('h4', { style: 'margin:10px 0 4px' }, [h('span', { text: T0.name + '  (alarm ' + T0.lo + ' ' + T0.unit + ' 1oo2 · ESD-1 ' + T0.hi + ' ' + T0.unit + ' 2oo2)' })]));
+      card.appendChild(h('div', { 'class': 'row' }, [h('span', { 'class': 'k', text: 'Voting / state' }), vs])); voteRows[k] = vs;
+      ['A', 'B'].forEach(function (p) {
+        var id = T0.pre + '-' + Z + '-' + p, val = h('b', { text: '--' }), sta = h('span', { 'class': 'status' }), bo = h('button', { text: 'OVERRIDE', onclick: function () { act('fgOvr', id, s().fgs.ovr[id] === undefined); } });
+        card.appendChild(h('div', { 'class': 'row detrow' }, [h('span', { 'class': 'k', text: id }), val, sta, bo])); detRows[id] = { val: val, sta: sta, bo: bo, k: k };
+      });
+    });
+    card.appendChild(h('div', { 'class': 'ctl' }, [h('button', { text: 'OVERRIDE ALL ' + Z, onclick: function () { act('fgOvrZone', Z, true); } }), h('button', { 'class': 'primary', text: 'DE-OVERRIDE ALL ' + Z, onclick: function () { act('fgOvrZone', Z, false); } })]));
+    card.appendChild(h('div', { 'class': 'ctl' }, [h('button', { text: 'FIELD CHECK ' + Z + ' (portable monitor)', onclick: function () { act('field', 'FG-' + Z); toast('Field operator sent to ' + Z); } }), h('button', { text: 'FIRE TEAM TO ' + Z, onclick: function () { act('hazardResp', Z, 'fire'); } }), h('button', { text: 'LEAK TEAM TO ' + Z, onclick: function () { act('hazardResp', Z, 'leak'); } })]));
+    card.appendChild(h('p', { 'class': 'note', text: 'Verify a detector reading before you override it: send the field operator with a portable monitor. A spurious single reading does not trip the plant while 2oo2 voting is intact; overriding the healthy partner would turn one false signal into a shutdown.' }));
+    root.appendChild(ks.el);
+    viewUpd.safety = function () {
+      ks.upd();
+      plant.FG_ZONES.forEach(function (zz) { var st = zoneStatus(zz[0]); zch[zz[0]].className = 'chip' + (zz[0] === Z ? ' on' : ''); zch[zz[0]].style.borderColor = ST_COL[st]; zch[zz[0]].style.color = st === 'ok' ? '' : '#fff'; zch[zz[0]].style.background = st === 'ok' ? '' : ST_COL[st] + '55'; });
+      plant.FG_KEYS.forEach(function (k) { var zr = s().fgs.z[Z][k]; voteRows[k].textContent = zr.vote + (zr.conf ? '  · CONFIRMED (ESD-1 demand)' : zr.high ? '  · HIGH' : zr.low ? '  · LOW alarm' : '  · normal') + (zr.fault ? '  · detector fault' : ''); voteRows[k].style.color = zr.conf || zr.high ? '#ff6b6b' : zr.low ? '#ffd479' : zr.blind ? '#d98cff' : ''; });
+      Object.keys(detRows).forEach(function (id) {
+        var d = s().fgs.det[id], r = detRows[id], T0 = plant.FG_TYPES[d.type], ov = s().fgs.ovr[id];
+        r.val.textContent = d.val.toFixed(d.type === 'h2s' ? 1 : 0) + ' ' + T0.unit;
+        r.sta.textContent = ov !== undefined ? 'OVERRIDDEN ' + mmss(ov - s().t) : d.fault === 'fail' ? 'FAULT' : d.val >= T0.hi ? 'HIGH' : d.val >= T0.lo ? 'LOW' : 'OK';
+        r.sta.className = 'status ' + (ov !== undefined ? 'STOPPED' : (d.fault === 'fail' || d.val >= T0.hi) ? 'TRIPPED' : d.val >= T0.lo ? 'STARTING' : 'RUNNING');
+        r.bo.textContent = ov !== undefined ? 'DE-OVERRIDE' : 'OVERRIDE'; r.bo.className = ov !== undefined ? 'primary' : '';
+      });
+    };
+  }
+  function safetyOVR(root) {
+    var ks = keySwitch(); root.appendChild(ks.el);
+    var list = h('div', { 'class': 'panel' }, [h('h3', { text: 'Active overrides and bypasses' })]); root.appendChild(list);
+    var box = h('div'); list.appendChild(box);
+    list.appendChild(h('div', { 'class': 'ctl' }, [h('button', { 'class': 'primary', text: 'DE-OVERRIDE ALL (restore detection)', onclick: function () { act('fgDeoverrideAll'); } })]));
+    var summary = h('div', { 'class': 'panel' }, [h('h3', { text: 'Zone detection status' })]); root.appendChild(summary);
+    var sbox = h('div'); summary.appendChild(sbox);
+    var sig = '';
+    viewUpd.safety = function () {
+      ks.upd();
+      var ov = s().fgs.ovr, bp = s().ceByp, keys = Object.keys(ov), bks = Object.keys(bp), sg = keys.join(',') + '|' + bks.join(',');
+      if (sg !== sig) {
+        sig = sg; box.innerHTML = '';
+        if (!keys.length && !bks.length) box.appendChild(h('div', { 'class': 'row', text: 'No overrides or bypasses active. Detection and shutdown logic fully available.' }));
+        keys.forEach(function (id) { var rem = h('span', { 'class': 'v' }); box.appendChild(h('div', { 'class': 'row', 'data-ov': id }, [h('span', { 'class': 'k', text: 'Detector ' + id }), rem, h('button', { 'class': 'primary', text: 'DE-OVERRIDE', onclick: function () { act('fgOvr', id, false); } })])); });
+        bks.forEach(function (id) { box.appendChild(h('div', { 'class': 'row', 'data-by': id }, [h('span', { 'class': 'k', text: 'SIS bypass ' + id }), h('span', { 'class': 'v' }), h('button', { 'class': 'primary', text: 'REMOVE BYPASS', onclick: function () { act('ceByp', id, false); } })])); });
+      }
+      Array.prototype.forEach.call(box.querySelectorAll('[data-ov]'), function (r) { r.querySelector('.v').textContent = 'expires in ' + mmss(ov[r.getAttribute('data-ov')] - s().t); });
+      Array.prototype.forEach.call(box.querySelectorAll('[data-by]'), function (r) { r.querySelector('.v').textContent = 'expires in ' + mmss(bp[r.getAttribute('data-by')] - s().t); });
+      var rows = plant.FG_ZONES.map(function (zz) {
+        var st = zoneStatus(zz[0]), v = plant.FG_KEYS.map(function (k) { return plant.FG_TYPES[k].pre + ' ' + s().fgs.z[zz[0]][k].vote; }).join(' · ');
+        return '<div class="row"><span class="k"><b style="color:' + ST_COL[st] + '">●</b> ' + zz[0] + ' ' + zz[1] + '</span><span class="v" style="font-size:11px">' + v + '</span></div>';
+      }).join('');
+      if (sbox.getAttribute('data-h') !== rows) { sbox.setAttribute('data-h', rows); sbox.innerHTML = rows; }
     };
   }
 
@@ -838,15 +998,16 @@
     var ins = h('div', { 'class': 'panel' }, [h('h3', { text: 'Instructor: inject faults' })]);
     var F = [['LT-101 drifting low', function () { plant.fault('inst', 'LT-101', { mode: 'DRIFT', rate: -0.04 }); }], ['FT-001 frozen', function () { plant.fault('inst', 'FT-001', { mode: 'FROZEN' }); }], ['PT-101 reads high', function () { plant.fault('inst', 'PT-101', { mode: 'HIGH' }); }],
       ['LCV-103 stuck', function () { plant.fault('valve', 'LCV-103'); }], ['P-101A seal leak', function () { plant.fault('pump', 'P-101A', { kind: 'seal', rate: 1 / 600 }); }], ['P-101A bearing wear', function () { plant.fault('pump', 'P-101A', { kind: 'bearing', v: 0.5 }); }],
-      ['P-101B fails to start', function () { plant.fault('pump', 'P-101B', { kind: 'nostart' }); }], ['Foam in V-101', function () { plant.fault('foam', null, { v: 0.8 }); }], ['Emulsion carryover', function () { plant.fault('emul', null, { v: 0.6 }); }],
-      ['E-102 fouling', function () { plant.fault('hx2', null, { v: 0.5 }); }], ['G-1 trip', function () { plant.fault('gen', 'G-1'); }], ['LACT meter drift', function () { plant.fault('lact', null, { v: 1.006 }); }], ['Hydrocyclone fouled', function () { plant.fault('hc', null, { v: 0.4 }); }],
+      ['P-101B fails to start', function () { plant.fault('pump', 'P-101B', { kind: 'nostart' }); }], ['Foam in V-100', function () { plant.fault('foam', null, { v: 0.8 }); }], ['Emulsion carryover', function () { plant.fault('emul', null, { v: 0.6 }); }],
+      ['V-210 fouling', function () { plant.fault('hx2', null, { v: 0.5 }); }], ['G-1 trip', function () { plant.fault('gen', 'G-1'); }], ['LACT meter drift', function () { plant.fault('lact', null, { v: 1.006 }); }], ['Hydrocyclone fouled', function () { plant.fault('hc', null, { v: 0.4 }); }],
       ['Trip P-101A (no standby)', function () { s().auto['P-101'] = false; s().pumps['P-101A'] = 'TRIPPED'; }], ['Trip HO-1', function () { s().ho.burner = 'TRIPPED'; }], ['Trip E-103', function () { s().ht.burner = 'TRIPPED'; }],
       ['Trip P-201A', function () { s().pumps['P-201A'] = 'TRIPPED'; }], ['Slug +100% 3 min', function () { s().well.slug = 1.0; setTimeout(function () { s().well.slug = 0; }, 180000 / speed); }],
       ['Water cut +25 pts', function () { s().well.wc = Math.min(0.8, s().well.wc + 0.25); }], ['IA failure', function () { s().ia.A = 'STOPPED'; s().ia.leak = true; setTimeout(function () { s().ia.leak = false; }, 300000 / speed); }],
-      ['Power failure (blackout)', function () { act('power', null, false); }], ['Gas leak', function () { s().hazard.gas = true; s().hazard.gasTimer = 0; }], ['Fire', function () { s().hazard.fire = true; }],
-      ['Pipeline 40%', function () { s().pipe.avail = 0.4; }], ['Flare pilot out', function () { s().flare.pilot = 'OUT'; }], ['E-101 fouling 60%', function () { plant.cfg.hx1.foul = 0.6; }],
-      ['Open BV-SC', function () { s().hv['BV-SC'] = 100; }], ['Open BV-HT', function () { s().hv['BV-HT'] = 100; }],
-      ['Clear faults', function () { s().hazard.gas = false; s().hazard.fire = false; s().pipe.avail = 1; s().well.wc = cfgWC(); s().well.slug = 0; s().ia.leak = false; act('power', null, true); plant.fault('clear'); s().hv['BV-SC'] = 0; s().hv['BV-HT'] = 0; s().fk.surge = 0; plant.cfg.hx1.foul = 0; }]];
+      ['Power failure (blackout)', function () { act('power', null, false); }], ['Gas leak Z2', function () { plant.fault('leak', 'Z2', { kind: 'gas', rate: 0.5 }); }], ['H2S leak Z1', function () { plant.fault('leak', 'Z1', { kind: 'h2s', rate: 0.1 }); }], ['Fire Z3', function () { plant.fault('fire', 'Z3'); }],
+      ['Spurious GD-Z3-A', function () { plant.fault('detector', 'GD-Z3-A', { kind: 'spike' }); }], ['GD-Z2-B fails (fault)', function () { plant.fault('detector', 'GD-Z2-B', { kind: 'fail' }); }], ['N2 package trip', function () { plant.fault('n2'); }], ['Block TK-410 vent', function () { plant.fault('vent'); }], ['LP pilot out', function () { plant.fault('lpout'); }],
+      ['Pipeline 40%', function () { s().pipe.avail = 0.4; }], ['Flare pilot out', function () { s().flare.pilot = 'OUT'; }], ['HX-1 fouling 60%', function () { plant.cfg.hx1.foul = 0.6; }],
+      ['Open GV-3 / GV-4', function () { s().hv['GV-3'] = 100; s().hv['GV-4'] = 100; }], ['Close GV-2', function () { s().hv['GV-2'] = 0; }], ['Open BV-CL', function () { s().hv['BV-CL'] = 100; }], ['Open BV-HT', function () { s().hv['BV-HT'] = 100; }],
+      ['Clear faults', function () { s().pipe.avail = 1; s().well.wc = cfgWC(); s().well.slug = 0; s().ia.leak = false; act('power', null, true); plant.fault('clear'); s().hv['GV-1'] = 100; s().hv['GV-2'] = 100; s().hv['GV-3'] = 0; s().hv['GV-4'] = 0; s().hv['BV-CL'] = 0; s().hv['VENT-410'] = 100; s().hv['BV-HT'] = 0; s().fk.surge = 0; plant.cfg.hx1.foul = 0; }]];
     var ctl = h('div', { 'class': 'ctl' }); F.forEach(function (f) { ctl.appendChild(h('button', { text: f[0], onclick: function () { f[1](); toast(f[0] + ' injected'); } })); }); ins.appendChild(ctl); root.appendChild(ins);
     var sv = h('div', { 'class': 'panel' }, [h('h3', { text: 'Session' }), h('div', { 'class': 'ctl' }, [
       h('button', { text: 'Reset to normal operation', onclick: function () { plant.reset('normal'); clearHist(); toast('Plant reset'); alarmSig = ''; } }),
@@ -927,6 +1088,12 @@
     $('tabAlarmCnt').textContent = unack.length ? unack.length : '';
     if (unack.length > lastUnack) { var p1 = unack.some(function (a) { return a.pr === 1; }); beep(p1 ? 2 : 1); if (p1 && navigator.vibrate) { try { navigator.vibrate([120, 80, 120]); } catch (e) {} } }
     lastUnack = unack.length;
+    var fb = $('fgBadge');
+    if (fb) {
+      var fa = plant.fgsActive(), ovn = Object.keys(s().fgs.ovr).length + Object.keys(s().ceByp).length, anyLow = plant.FG_ZONES.some(function (z) { return plant.FG_KEYS.some(function (k) { return s().fgs.z[z[0]][k].low; }); });
+      fb.className = 'esd ' + (fa.length ? 'esd1' : (anyLow || s().horn) ? 'psd' : ovn ? 'psd' : 'ok');
+      fb.textContent = fa.length ? 'F&G ALARM' : anyLow ? 'F&G PRE-ALARM' : ovn ? 'F&G OVR ' + ovn : 'F&G OK';
+    }
     var lv = s().esd.level, e = $('esdBadge'); e.className = 'esd ' + (lv === 0 ? 'ok' : lv === 1 ? 'psd' : 'esd1'); e.textContent = lv === 0 ? 'ESD OK' : lv === 1 ? 'PSD' : 'ESD-1';
   }
 
@@ -953,7 +1120,7 @@
   document.addEventListener('visibilitychange', function () { if (document.hidden) { paused = true; $('btnPause').textContent = '▶'; save(false); } });
   try { if (navigator.wakeLock) navigator.wakeLock.request('screen').catch(function () {}); } catch (e) {}
   if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) { navigator.serviceWorker.register('sw.js').catch(function () {}); }
-  window.__cpfUI = { h: h, act: act, toast: toast, clock: clock, fmt: fmt, plant: plant, s: s, tg: tg, cfg: cfg, showModal: showModal, copyText: copyText, viewUpd: viewUpd, tabTo: tabTo, openSheet: openSheet, build: {}, opName: opName, EQ: EQ };
+  window.__cpfUI = { gotoFG: gotoFG, h: h, act: act, toast: toast, clock: clock, fmt: fmt, plant: plant, s: s, tg: tg, cfg: cfg, showModal: showModal, copyText: copyText, viewUpd: viewUpd, tabTo: tabTo, openSheet: openSheet, build: {}, opName: opName, EQ: EQ };
   window.__cpf = { plant: plant, tabTo: tabTo, openSheet: openSheet, setSpeed: setSpeed, gotoArea: gotoArea, AREAS: AREAS };
   requestAnimationFrame(frame);
 })();

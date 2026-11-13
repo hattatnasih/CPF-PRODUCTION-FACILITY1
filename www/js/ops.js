@@ -40,7 +40,7 @@
     root.appendChild(p);
     var ip = h('div', { 'class': 'panel' }, [h('h3', { text: 'Issue a permit' })]), sel = h('select', { id: 'ptwSel' });
     function grp(label, ids) { var g = h('optgroup', { label: label }); ids.forEach(function (i) { g.appendChild(h('option', { value: i, text: i })); }); sel.appendChild(g); }
-    grp('Pumps', Object.keys(s().pumps)); grp('Burners and generators', ['HO-1', 'E-103', 'G-1', 'G-2', 'G-3']); grp('Valves', Object.keys(s().valves));
+    grp('Pumps', Object.keys(s().pumps)); grp('Burners and generators', ['HO-1', 'E-103', 'G-1', 'G-2']); grp('Valves', Object.keys(s().valves));
     grp('Instruments', plant.tags().map(function (q) { return q.tag; }).filter(function (t) { return /^(LT|PT|TT|FT|AT)-/.test(t); }));
     ip.appendChild(h('div', { 'class': 'ctl' }, [sel, h('button', { 'class': 'primary', text: 'ISSUE PERMIT', onclick: function () { var r = act('ptw', sel.value, true); sig = ''; render(true); if (r && r.ok) toast('Permit issued on ' + sel.value); } })]));
     ip.appendChild(h('p', { 'class': 'note', text: 'Pumps, burners and generators must be stopped first. The item is locked off (LOTO) and cannot be started. Maintenance takes about 5 min; close the permit once it shows READY to return the equipment repaired. Cancelling early leaves the fault in place.' }));
@@ -118,11 +118,30 @@
     'Basic': 'أساسي', 'Intermediate': 'متوسط', 'Advanced': 'متقدم',
     'Free operation': 'تشغيل حر', 'Slug arrival at the slug catcher': 'وصول سدادة سائلة إلى مصيدة السدادات', 'High water cut upset': 'ارتفاع نسبة الماء', 'Transfer pump P-101A trip': 'فصل مضخة النقل P-101A', 'Hot oil heater HO-1 trip': 'فصل سخان الزيت الساخن HO-1',
     'Stripping column bypass left open': 'ترك تجاوز عمود التجريد مفتوحا', 'Instrument air failure': 'انقطاع هواء الأجهزة', 'FKOD high level and flare pilot out': 'ارتفاع مستوى FKOD وانطفاء شعلة الإشعال', 'Export pump trip / pipeline restriction': 'فصل مضخة التصدير وتقييد خط الأنابيب',
-    'Gas leak — ESD-1 response': 'تسرب غاز: الاستجابة لـ ESD-1', 'Cold start-up after shutdown': 'التشغيل البارد بعد الإيقاف', 'Level transmitter LT-101 drifting': 'انحراف مرسل المستوى LT-101', 'Level control valve LCV-103 stuck': 'انحشار صمام التحكم LCV-103', 'Foaming in V-101': 'تكوّن الرغوة في V-101',
+    'Gas leak — ESD-1 response': 'تسرب غاز: الاستجابة لـ ESD-1', 'Cold start-up after shutdown': 'التشغيل البارد بعد الإيقاف', 'Level transmitter LT-101 drifting': 'انحراف مرسل المستوى LT-101', 'Level control valve LCV-103 stuck': 'انحشار صمام التحكم LCV-103', 'Foaming in V-100': 'تكوّن الرغوة في V-100',
     'P-101A mechanical seal leak': 'تسرب الإحكام الميكانيكي للمضخة P-101A', 'Generator G-1 trip and load shed': 'فصل المولد G-1 وتخفيف الأحمال', 'LACT meter factor out of tolerance': 'خروج معامل عداد LACT عن الحد المسموح', 'Hydrocyclone fouling, oil in water high': 'انسداد الهيدروسايكلون وارتفاع الزيت في الماء',
     'KPIs (since start)': 'المؤشرات (منذ البدء)', 'Exported crude': 'النفط المصدّر', 'Gas to flare': 'الغاز إلى الشعلة', 'Unlit-flare venting': 'تنفيس بلا إشعال', 'Off-spec crude': 'نفط خارج المواصفات', 'P1 alarm time': 'زمن إنذارات الأولوية 1',
     'Session saved': 'تم حفظ الجلسة', 'Session loaded': 'تم تحميل الجلسة'
   };
+  var AR2 = {
+    'ESD · F&G': 'الإيقاف · الحريق والغاز', 'ESD & C&E': 'ESD والسبب والنتيجة', 'Fire & Gas': 'الحريق والغاز', 'Overrides': 'التجاوزات',
+    'Shutdown controls': 'أزرار الإيقاف', 'RESET ESD / PSD': 'إعادة ضبط ESD / PSD', 'SILENCE HORN': 'إسكات البوق', 'PSD (process shutdown)': 'PSD (إيقاف العملية)',
+    'Cause & effect matrix (live)': 'مصفوفة السبب والنتيجة (مباشر)', 'Cause': 'السبب', 'Vote': 'التصويت', 'Level': 'المستوى',
+    'Fire & gas zones': 'مناطق الحريق والغاز', 'F&G inhibit key switch (override authority)': 'مفتاح تجاوز الحريق والغاز (صلاحية التجاوز)',
+    'TURN KEY TO OVERRIDE': 'أدر المفتاح إلى وضع التجاوز', 'REMOVE KEY (NORMAL)': 'انزع المفتاح (عادي)', 'Key position': 'وضع المفتاح',
+    'OVERRIDE': 'تجاوز', 'DE-OVERRIDE': 'إلغاء التجاوز', 'DE-OVERRIDE ALL (restore detection)': 'إلغاء كل التجاوزات (إعادة الكشف)', 'Active overrides and bypasses': 'التجاوزات النشطة',
+    'Zone detection status': 'حالة الكشف في المناطق', 'REMOVE BYPASS': 'إزالة التجاوز', 'Voting / state': 'التصويت / الحالة',
+    'N2 package (30 s start)': 'وحدة النيتروجين', 'LP flare pilot': 'مشعل الشعلة منخفضة الضغط', 'RE-IGNITE LP PILOT': 'إعادة إشعال شعلة LP',
+    'N2 stripping gas to C-101': 'غاز النيتروجين للتجريد إلى C-101', 'TK-410 cold vent to LP flare': 'تنفيس TK-410 البارد إلى شعلة LP',
+    'MF-2 oil manifold: gate valves and bypass': 'مانيفولد النفط MF-2: صمامات البوابة والتجاوز',
+    'Gas leak in separation area (Z2): manual ESD-1': 'تسرب غاز في منطقة الفصل (Z2): ESD-1 يدوي',
+    'H2S release at wellhead manifold (Z1)': 'تسرب H2S عند مانيفولد رأس البئر (Z1)', 'Fire at the air cooler (Z3): ESD-1 and emergency response': 'حريق عند المبرد (Z3): ESD-1 والاستجابة للطوارئ',
+    'Spurious gas detector GD-Z3-A: verify, override, de-override': 'كاشف غاز كاذب GD-Z3-A: تحقق وتجاوز وإلغاء التجاوز',
+    'N2 package trip: stripping column loses N2': 'فصل وحدة النيتروجين: فقدان N2 في عمود التجريد', 'TK-410 cold vent blocked: PVRV lifting': 'انسداد تنفيس TK-410: فتح PVRV',
+    'Cooler bypass BV-CL left open': 'ترك تجاوز المبرد BV-CL مفتوحا', 'Advanced': 'متقدم', 'Beginner': 'مبتدئ',
+    'Fire & gas': 'الحريق والغاز', 'Tanks': 'الخزانات', 'Hand valves': 'الصمامات اليدوية'
+  };
+  for (var kk in AR2) AR[kk] = AR2[kk];
   var PAT = [[/^Active alarms \((\d+)\)$/, 'الإنذارات النشطة ($1)'], [/^Shelved alarms \((\d+)\)$/, 'الإنذارات المعلّقة ($1)'], [/^Permits to work and isolations \((\d+)\)$/, 'تصاريح العمل والعزل ($1)']];
   var lang = 'en', origTxt = new WeakMap(), origAttr = new WeakMap(), obs = null, busy = false;
   try { lang = localStorage.getItem('nf_cpf_lang') || 'en'; } catch (e) {}

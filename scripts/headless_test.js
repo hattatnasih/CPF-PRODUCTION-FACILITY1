@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* Headless regression test for the North Field CPF engine.
+/* Headless regression test for the HBJF engine.
  * usage: node scripts/headless_test.js [path/to/engine.js]
  * 1) steady state must hold for 1 h with no alarms at 600 m3/h, 35 % WC
  * 2) scaled configurations must start clean
@@ -24,10 +24,10 @@ console.log('Steady state (1 h):');
 {
   const p = E.createPlant(BASE); p.advance(3600);
   const T = (k) => p.tag(k).v;
-  ok(Math.abs(T('PT-001') - 12) < 0.3, 'SC-101 pressure ~12 barg (' + T('PT-001').toFixed(2) + ')');
-  ok(Math.abs(T('LT-001') - 50) < 4 && Math.abs(T('LT-101') - 50) < 4 && Math.abs(T('LT-103') - 50) < 5, 'SC/V-101/V-102 levels ~50%');
-  ok(Math.abs(T('PT-101') - 6) < 0.2 && Math.abs(T('PT-102') - 2.5) < 0.2 && Math.abs(T('PT-104') - 1.2) < 0.15, 'V-101 / V-102 / C-101 pressures on set-point');
-  ok(Math.abs(T('TT-102') - 85) < 2 && Math.abs(T('TT-104') - 120) < 3 && Math.abs(T('TT-105') - 48) < 2, 'V-102 85, reboiler 120, cooler out 48 degC');
+  ok(Math.abs(T('PT-001') - 12) < 0.3, 'V-001 pressure ~12 barg (' + T('PT-001').toFixed(2) + ')');
+  ok(Math.abs(T('LT-001') - 50) < 4 && Math.abs(T('LT-101') - 50) < 4 && Math.abs(T('LT-103') - 50) < 5, 'SC/V-100/HT-200 levels ~50%');
+  ok(Math.abs(T('PT-101') - 6) < 0.2 && Math.abs(T('PT-102') - 2.5) < 0.2 && Math.abs(T('PT-104') - 1.2) < 0.15, 'V-100 / HT-200 / C-101 pressures on set-point');
+  ok(Math.abs(T('TT-102') - 85) < 2 && Math.abs(T('TT-104') - 120) < 3 && Math.abs(T('TT-105') - 48) < 2, 'HT-200 85, reboiler 120, cooler out 48 degC');
   ok(T('AT-101') < 0.3, 'crude BS&W in spec (' + T('AT-101').toFixed(2) + '%)');
   ok(T('AT-102') < 10, 'RVP in spec (' + T('AT-102').toFixed(1) + ')');
   ok(Math.abs(T('FT-201') - 450) < 10, 'export 450 m3/h (' + T('FT-201').toFixed(0) + ')');
@@ -50,16 +50,22 @@ const cases = [
   ['high-wc-upset', (p, el, l) => { at(l, 'a', el, 70, () => { p.cmd('dem', null, 50); p.cmd('setSP', 'TIC-102', 95); }); }, 2400],
   ['transfer-pump-trip', (p, el, l) => { at(l, 'a', el, 40, () => { p.cmd('start', 'P-101B'); p.cmd('auto', 'P-101', true); }); }, 1200],
   ['heater-trip', (p, el, l) => { at(l, 'a', el, 40, () => { p.cmd('resetTrip', 'HO-1'); p.cmd('start', 'HO-1'); }); }, 3000],
-  ['column-bypass', (p, el, l) => { at(l, 'a', el, 60, () => { p.cmd('hv', 'BV-SC', 0); }); }, 2400],
+  ['column-bypass', (p, el, l) => { at(l, 'a', el, 60, () => { p.cmd('hv', 'GV-3', 0); p.cmd('hv', 'GV-4', 0); }); }, 2400],
   ['instrument-air-failure', (p, el, l) => { at(l, 'a', el, 40, () => p.cmd('iaStart', 'IAC-B')); }, 1500],
   ['flare-fkod-upset', (p, el, l) => { at(l, 'a', el, 40, () => { p.cmd('start', 'P-401B'); p.cmd('auto', 'P-401', true); }); at(l, 'b', el, 100, () => p.cmd('flareIgnite')); }, 1800],
   ['export-restriction', (p, el, l) => { at(l, 'a', el, 40, () => p.cmd('start', 'P-201B')); at(l, 'b', el, 620, () => p.cmd('setSP', 'FIC-201', 200)); }, 2400],
-  ['gas-leak-esd', (p, el, l) => { at(l, 'a', el, 45, () => p.cmd('esd')); }, 900],
+  ['gas-leak-esd', (p, el, l) => { at(l, 'a', el, 100, () => p.cmd('esd')); at(l, 'b', el, 130, () => p.cmd('hornReset')); }, 900],
+  ['h2s-leak-z1', (p, el, l) => { at(l, 'a', el, 120, () => p.cmd('esd')); at(l, 'b', el, 140, () => p.cmd('hazardResp', 'Z1', 'leak')); }, 900],
+  ['fire-z3', (p, el, l) => { at(l, 'a', el, 70, () => { p.cmd('hornReset'); p.cmd('hazardResp', 'Z3', 'fire'); }); }, 1200],
+  ['spurious-detector', (p, el, l) => { at(l, 'a', el, 60, () => p.cmd('field', 'FG-Z3')); at(l, 'b', el, 120, () => { p.cmd('fgKey', null, true); p.cmd('fgOvr', 'GD-Z3-A', true); }); at(l, 'c', el, 150, () => p.cmd('fgKey', null, false)); at(l, 'd', el, 440, () => p.cmd('fgOvr', 'GD-Z3-A', false)); }, 1500],
+  ['n2-package-trip', (p, el, l) => { at(l, 'a', el, 60, () => { p.cmd('resetTrip', 'N2-PKG'); p.cmd('start', 'N2-PKG'); }); }, 1800],
+  ['tk410-vent-blocked', (p, el, l) => { at(l, 'a', el, 80, () => p.cmd('field', 'TK410-VENT')); at(l, 'b', el, 140, () => p.cmd('hv', 'VENT-410', 100)); }, 1200],
+  ['cooler-bypass-open', (p, el, l) => { at(l, 'a', el, 90, () => p.cmd('hv', 'BV-CL', 0)); }, 1200],
   ['instrument-fault', (p, el, l) => { at(l, 'a', el, 120, () => p.cmd('setMode', 'LIC-101', 'MAN')); at(l, 'b', el, 150, () => p.cmd('ptw', 'LT-101', true)); at(l, 'c', el, 470, () => p.cmd('ptw', 'LT-101', false)); at(l, 'd', el, 480, () => p.cmd('setMode', 'LIC-101', 'AUTO')); }, 1800],
   ['stuck-valve', (p, el, l) => { at(l, 'a', el, 60, () => { p.cmd('choke', 'W-3', 40); p.cmd('choke', 'W-2', 60); }); at(l, 'b', el, 100, () => p.cmd('ptw', 'LCV-103', true)); at(l, 'c', el, 420, () => p.cmd('ptw', 'LCV-103', false)); at(l, 'd', el, 500, () => { p.cmd('choke', 'W-3', 100); p.cmd('choke', 'W-2', 100); }); }, 1800],
   ['foaming', (p, el, l) => { at(l, 'a', el, 60, () => p.cmd('chem', 'af', 14)); }, 1800],
   ['pump-seal-leak', (p, el, l) => { at(l, 'a', el, 100, () => p.cmd('start', 'P-101B')); at(l, 'b', el, 130, () => p.cmd('stop', 'P-101A')); at(l, 'c', el, 160, () => p.cmd('ptw', 'P-101A', true)); at(l, 'd', el, 480, () => p.cmd('ptw', 'P-101A', false)); }, 1500],
-  ['generator-trip', (p, el, l) => { at(l, 'a', el, 40, () => p.cmd('start', 'G-3')); at(l, 'b', el, 120, () => { p.cmd('shedReset'); }); at(l, 'c', el, 130, () => p.cmd('start', 'P-301A')); }, 1500],
+  ['generator-trip', (p, el, l) => { at(l, 'a', el, 40, () => { p.cmd('resetTrip', 'G-1'); p.cmd('start', 'G-1'); }); at(l, 'b', el, 125, () => { p.cmd('shedReset'); }); at(l, 'c', el, 135, () => p.cmd('start', 'P-301A')); }, 1500],
   ['lact-meter-drift', (p, el, l) => { at(l, 'a', el, 60, () => p.cmd('prove')); at(l, 'b', el, 300, () => p.cmd('lactSample')); }, 1200],
   ['hydrocyclone-fouling', (p, el, l) => { at(l, 'a', el, 60, () => { p.cmd('backwash'); p.cmd('skim'); }); }, 1800],
 ];

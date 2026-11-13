@@ -1,17 +1,22 @@
-/* North Field CPF — process engine (UI-agnostic; runs in the WebView and in Node).
+/* HBJF — process engine (UI-agnostic; runs in the WebView and in Node).
  *
  * Flowsheet (oil train):
- *   Wellheads W-1..3 -> production manifold MF-1 -> ESDV-001 -> slug catcher SC-101
- *   -> heat exchanger E-101 (HX-1, feed/stripped-crude recovery) -> 1st stage separator V-101
- *   -> heat exchanger E-102 (HX-2, hot oil) -> heater treater V-102 (fired, E-103 burner)
- *   -> transfer pumps P-101A/B -> manifold MF-2 (bypass BV-HT around V-102, BV-SC around C-101)
- *   -> stripping column C-101 (reboiler on hot oil) -> HX-1 hot side -> oil cooler E-105 (air fin)
- *   -> 2nd stage separator V-103 -> storage tank T-101 (or slop T-102) -> export pumps P-201A/B
- *   Gas from every vessel -> flare KO drum V-401 -> flare FL-401 (pilot).
- *   Water from every vessel -> produced water tank T-301 -> disposal pumps P-301A/B.
- *   Drains (hand valves) -> slop tank T-102; FKOD pumps P-401A/B -> slop; slop pump P-501 -> SC-101.
- *   Utilities: hot oil heater HO-1 (supplies E-102 and C-101 reboiler), instrument air, power.
- *   Safety: PSD / ESD-1 cause & effect, PSVs, BDV-001, fired-heater trips, pump trips.
+ *   Wellheads W-1..3 -> oil manifold MF-1 -> ESDV-001 -> slug catcher V-001
+ *   -> shell & tube exchanger HX-1 (feed / stripped-crude heat recovery) -> 1st stage separator V-100
+ *   -> exchanger V-210 (hot oil) -> heater treater HT-200 (fired, E-103 burner; bypass BV-HT)
+ *   -> 2 x Viking transfer pumps P-101A/B -> oil manifold MF-2 with 4 gate / straight valves:
+ *        GV-1 stripping column inlet, GV-2 stripping column outlet, GV-3 and GV-4 straight bypass to the cooler
+ *   -> stripping column C-101 (reboiler on hot oil, N2 stripping gas from the N2 package via XV-N2)
+ *   -> HX-1 hot side -> oil fan cooler E-105 (bypass line BV-CL ties in at V-110) -> 2nd stage separator V-110
+ *   -> storage tank TK-410 (or slop TK-430) -> export pumps P-201A/B -> LACT -> pipeline.
+ *   TK-410 cold vent (VENT-410, PVRV) -> LP flare FL-402.
+ *   Gas from every vessel -> flare KO drum V-401 (FKOD) -> HP flare FL-401 (pilot).
+ *   Water from every vessel -> produced water tank TK-420 -> disposal pumps P-301A/B.
+ *   Drains -> slop tank TK-430; FKOD pumps P-401A/B -> slop; slop pump P-501 -> V-001.
+ *   Utilities: hot oil heater HO-1, instrument air, N2 package, 2 x generator G-1 / G-2 (load shedding).
+ *   Safety: PSD (level 1) / ESD-1 (level 2) data-driven cause & effect, PSVs, BDV-001, fired-heater and pump trips,
+ *   fire & gas system: 7 zones x (combustible gas, H2S, flame) detectors A/B, 2oo2 voting that degrades to 1oo1 on
+ *   override / fault, inhibit key switch, detector override / de-override with 60 min auto-expiry, SIS bypass.
  * Volumes m3, pressures barg, liquid flows m3/h, gas Sm3/h, temperatures degC, duties kW.
  */
 (function (root, factory) {
@@ -60,35 +65,35 @@
   // ------------------------------------------------------------------ alarms
   // [id, description, tag, '>'|'<', limit, priority (1 high .. 3 low), deadband]
   var ALARM_DEFS = [
-    ['PAHH-001', 'SC-101 pressure high-high', 'PT-001', '>', 14.5, 1, 0.3],
-    ['PAH-001',  'SC-101 pressure high', 'PT-001', '>', 13.3, 2, 0.3],
-    ['PAL-001',  'SC-101 pressure low', 'PT-001', '<', 9.5, 3, 0.3],
-    ['LAHH-001', 'SC-101 level high-high', 'LT-001', '>', 85, 1, 2],
-    ['LAH-001',  'SC-101 level high', 'LT-001', '>', 70, 2, 2],
-    ['LAL-001',  'SC-101 level low', 'LT-001', '<', 25, 2, 2],
-    ['LALL-001', 'SC-101 level low-low', 'LT-001', '<', 10, 1, 2],
-    ['LAH-002',  'SC-101 interface high', 'LI-002', '>', 45, 2, 2],
-    ['LAL-002',  'SC-101 interface low (oil carry-under)', 'LI-002', '<', 8, 2, 2],
-    ['PAHH-101', 'V-101 pressure high-high', 'PT-101', '>', 8.0, 1, 0.2],
-    ['PAH-101',  'V-101 pressure high', 'PT-101', '>', 7.2, 2, 0.2],
-    ['PAL-101',  'V-101 pressure low', 'PT-101', '<', 4.5, 3, 0.2],
-    ['LAHH-101', 'V-101 level high-high', 'LT-101', '>', 85, 1, 2],
-    ['LAH-101',  'V-101 level high', 'LT-101', '>', 70, 2, 2],
-    ['LAL-101',  'V-101 level low', 'LT-101', '<', 25, 2, 2],
-    ['LALL-101', 'V-101 level low-low', 'LT-101', '<', 10, 1, 2],
-    ['LAH-102',  'V-101 interface high', 'LI-102', '>', 40, 2, 2],
-    ['TAH-103',  'E-102 outlet temperature high', 'TT-103', '>', 90, 2, 2],
-    ['TAL-103',  'E-102 outlet temperature low', 'TT-103', '<', 66, 3, 2],
-    ['PAH-102',  'V-102 pressure high', 'PT-102', '>', 3.3, 2, 0.15],
-    ['PAHH-102', 'V-102 pressure high-high', 'PT-102', '>', 4.0, 1, 0.15],
-    ['LAH-103',  'V-102 level high', 'LT-103', '>', 75, 2, 2],
-    ['LAHH-103', 'V-102 level high-high', 'LT-103', '>', 88, 1, 2],
-    ['LAL-103',  'V-102 level low', 'LT-103', '<', 25, 2, 2],
-    ['LALL-103', 'V-102 level low-low (pump & burner trip)', 'LT-103', '<', 12, 1, 2],
-    ['LAH-104',  'V-102 interface high', 'LI-104', '>', 40, 2, 2],
-    ['TAH-102',  'V-102 temperature high', 'TT-102', '>', 93, 2, 1.5],
-    ['TAHH-102', 'V-102 temperature high-high (burner trip)', 'TT-102', '>', 100, 1, 1.5],
-    ['TAL-102',  'V-102 temperature low', 'TT-102', '<', 74, 3, 2],
+    ['PAHH-001', 'V-001 pressure high-high', 'PT-001', '>', 14.5, 1, 0.3],
+    ['PAH-001',  'V-001 pressure high', 'PT-001', '>', 13.3, 2, 0.3],
+    ['PAL-001',  'V-001 pressure low', 'PT-001', '<', 9.5, 3, 0.3],
+    ['LAHH-001', 'V-001 level high-high', 'LT-001', '>', 85, 1, 2],
+    ['LAH-001',  'V-001 level high', 'LT-001', '>', 70, 2, 2],
+    ['LAL-001',  'V-001 level low', 'LT-001', '<', 25, 2, 2],
+    ['LALL-001', 'V-001 level low-low', 'LT-001', '<', 10, 1, 2],
+    ['LAH-002',  'V-001 interface high', 'LI-002', '>', 45, 2, 2],
+    ['LAL-002',  'V-001 interface low (oil carry-under)', 'LI-002', '<', 8, 2, 2],
+    ['PAHH-101', 'V-100 pressure high-high', 'PT-101', '>', 8.0, 1, 0.2],
+    ['PAH-101',  'V-100 pressure high', 'PT-101', '>', 7.2, 2, 0.2],
+    ['PAL-101',  'V-100 pressure low', 'PT-101', '<', 4.5, 3, 0.2],
+    ['LAHH-101', 'V-100 level high-high', 'LT-101', '>', 85, 1, 2],
+    ['LAH-101',  'V-100 level high', 'LT-101', '>', 70, 2, 2],
+    ['LAL-101',  'V-100 level low', 'LT-101', '<', 25, 2, 2],
+    ['LALL-101', 'V-100 level low-low', 'LT-101', '<', 10, 1, 2],
+    ['LAH-102',  'V-100 interface high', 'LI-102', '>', 40, 2, 2],
+    ['TAH-103',  'V-210 outlet temperature high', 'TT-103', '>', 90, 2, 2],
+    ['TAL-103',  'V-210 outlet temperature low', 'TT-103', '<', 66, 3, 2],
+    ['PAH-102',  'HT-200 pressure high', 'PT-102', '>', 3.3, 2, 0.15],
+    ['PAHH-102', 'HT-200 pressure high-high', 'PT-102', '>', 4.0, 1, 0.15],
+    ['LAH-103',  'HT-200 level high', 'LT-103', '>', 75, 2, 2],
+    ['LAHH-103', 'HT-200 level high-high', 'LT-103', '>', 88, 1, 2],
+    ['LAL-103',  'HT-200 level low', 'LT-103', '<', 25, 2, 2],
+    ['LALL-103', 'HT-200 level low-low (pump & burner trip)', 'LT-103', '<', 12, 1, 2],
+    ['LAH-104',  'HT-200 interface high', 'LI-104', '>', 40, 2, 2],
+    ['TAH-102',  'HT-200 temperature high', 'TT-102', '>', 93, 2, 1.5],
+    ['TAHH-102', 'HT-200 temperature high-high (burner trip)', 'TT-102', '>', 100, 1, 1.5],
+    ['TAL-102',  'HT-200 temperature low', 'TT-102', '<', 74, 3, 2],
     ['TAH-101',  'HO-1 hot oil temperature high', 'TT-101', '>', 205, 2, 2],
     ['TAHH-101', 'HO-1 hot oil temperature high-high (burner trip)', 'TT-101', '>', 218, 1, 2],
     ['TAL-101',  'HO-1 hot oil temperature low', 'TT-101', '<', 165, 3, 3],
@@ -99,10 +104,10 @@
     ['TAL-104',  'C-101 reboiler temperature low', 'TT-104', '<', 112, 3, 2],
     ['TAH-104',  'C-101 reboiler temperature high', 'TT-104', '>', 130, 3, 2],
     ['TAH-105',  'E-105 outlet temperature high', 'TT-105', '>', 58, 2, 2],
-    ['PAH-103',  'V-103 pressure high', 'PT-103', '>', 1.3, 2, 0.1],
-    ['LAH-106',  'V-103 level high', 'LT-106', '>', 75, 2, 2],
-    ['LAL-106',  'V-103 level low', 'LT-106', '<', 25, 2, 2],
-    ['LAH-107',  'V-103 interface high', 'LI-107', '>', 40, 2, 2],
+    ['PAH-103',  'V-110 pressure high', 'PT-103', '>', 1.3, 2, 0.1],
+    ['LAH-106',  'V-110 level high', 'LT-106', '>', 75, 2, 2],
+    ['LAL-106',  'V-110 level low', 'LT-106', '<', 25, 2, 2],
+    ['LAH-107',  'V-110 interface high', 'LI-107', '>', 40, 2, 2],
     ['AAH-102',  'Crude RVP high (off-spec)', 'AT-102', '>', 10.0, 2, 0.2],
     ['AAH-101',  'Crude BS&W high (>0.4%)', 'AT-101', '>', 0.4, 2, 0.04],
     ['AAHH-101', 'Crude BS&W high-high (off-spec)', 'AT-101', '>', 0.5, 1, 0.04],
@@ -110,19 +115,65 @@
     ['PAHH-401', 'Flare header (FKOD) pressure high-high', 'PT-401', '>', 1.2, 1, 0.1],
     ['LAH-401',  'FKOD level high', 'LT-401', '>', 50, 2, 2],
     ['LAHH-401', 'FKOD level high-high', 'LT-401', '>', 75, 1, 2],
-    ['LAHH-201', 'T-101 level high-high', 'LT-201', '>', 93, 1, 1],
-    ['LAH-201',  'T-101 level high', 'LT-201', '>', 85, 2, 1],
-    ['LAL-201',  'T-101 level low', 'LT-201', '<', 10, 2, 1],
-    ['LALL-201', 'T-101 level low-low (export pump trip)', 'LT-201', '<', 4, 1, 1],
-    ['AAH-201',  'T-101 BS&W out of spec', 'AT-201', '>', 0.5, 2, 0.02],
-    ['LAH-202',  'T-102 slop tank level high', 'LT-202', '>', 80, 2, 2],
-    ['LAH-301',  'T-301 water level high', 'LT-301', '>', 80, 2, 2],
-    ['LAL-301',  'T-301 water level low', 'LT-301', '<', 20, 3, 2],
+    ['LAHH-201', 'TK-410 level high-high', 'LT-201', '>', 93, 1, 1],
+    ['LAH-201',  'TK-410 level high', 'LT-201', '>', 85, 2, 1],
+    ['LAL-201',  'TK-410 level low', 'LT-201', '<', 10, 2, 1],
+    ['LALL-201', 'TK-410 level low-low (export pump trip)', 'LT-201', '<', 4, 1, 1],
+    ['AAH-201',  'TK-410 BS&W out of spec', 'AT-201', '>', 0.5, 2, 0.02],
+    ['LAH-202',  'TK-430 slop tank level high', 'LT-202', '>', 80, 2, 2],
+    ['LAH-301',  'TK-420 water level high', 'LT-301', '>', 80, 2, 2],
+    ['LAL-301',  'TK-420 water level low', 'LT-301', '<', 20, 3, 2],
     ['AAH-301',  'Oil-in-water high', 'AT-301', '>', 40, 2, 3],
     ['AAHH-301', 'Oil-in-water high-high', 'AT-301', '>', 100, 1, 3],
+    ['AAH-103',  'Stripped crude H2S high (N2 stripping poor)', 'AT-103', '>', 12, 2, 0.5],
+    ['TAH-110',  'V-110 inlet temperature high (cooler bypass?)', 'TT-110', '>', 60, 2, 2],
+    ['PAL-N2',   'N2 package pressure low', 'PT-N2', '<', 5.0, 2, 0.3],
+    ['PAH-410',  'TK-410 vapour pressure high', 'PT-410', '>', 22, 2, 2],
+    ['PAHH-410', 'TK-410 vapour pressure high-high (PVRV lifting)', 'PT-410', '>', 32, 1, 2],
+    ['PAL-410',  'TK-410 vapour pressure low (vacuum risk)', 'PT-410', '<', -2, 2, 0.5],
+    ['PAH-405',  'LP flare header pressure high', 'PT-405', '>', 0.03, 2, 0.004],
     ['PAL-901',  'Instrument air pressure low', 'PT-901', '<', 5.5, 2, 0.3],
     ['PALL-901', 'Instrument air pressure low-low', 'PT-901', '<', 4.0, 1, 0.3]
   ];
+  // ------------------------------------------------------------------ fire & gas system definitions
+  var FG_ZONES = [
+    ['Z1', 'Wellhead, MF-1 manifold and V-001 slug catcher'],
+    ['Z2', 'Separation: HX-1, V-100, V-210, HT-200'],
+    ['Z3', 'Manifold MF-2, P-101 pumps, C-101 stripper, N2 package'],
+    ['Z4', 'Cooler E-105, V-110, TK-410 and export pumps'],
+    ['Z5', 'Water and slop: TK-420, P-301, TK-430, P-501'],
+    ['Z6', 'Packages: generators G-1 / G-2, switchgear, fuel gas'],
+    ['Z7', 'FKOD V-401, HP flare, HO-1 hot oil heater']
+  ];
+  // type -> pre-alarm (1oo2), high / confirmed (2oo2) thresholds
+  var FG_TYPES = {
+    gas:  { name: 'Combustible gas', pre: 'GD', unit: '%LEL', lo: 20, hi: 60, max: 100 },
+    h2s:  { name: 'H2S',             pre: 'HS', unit: 'ppm',  lo: 5,  hi: 15, max: 50 },
+    fire: { name: 'Flame (UV/IR)',   pre: 'FD', unit: '%',    lo: 30, hi: 60, max: 100 }
+  };
+  var FG_KEYS = ['gas', 'h2s', 'fire'];
+  var FG_EXPIRE = 3600;          // override auto-expiry (s)
+  // process causes of PSD (level 1) and ESD-1 (level 2): id, tag, description, level, test
+  var CAUSES = [
+    ['PSHH-001', 'PT-001', 'V-001 pressure high-high', 1, function (t) { return t['PT-001'].v >= 15.0; }],
+    ['LSHH-001', 'LT-001', 'V-001 level high-high', 1, function (t) { return t['LT-001'].v >= 90; }],
+    ['PSHH-101', 'PT-101', 'V-100 pressure high-high', 1, function (t) { return t['PT-101'].v >= 8.5; }],
+    ['LSHH-101', 'LT-101', 'V-100 level high-high', 1, function (t) { return t['LT-101'].v >= 90; }],
+    ['LSHH-103', 'LT-103', 'HT-200 level high-high', 1, function (t) { return t['LT-103'].v >= 92; }],
+    ['PSHH-102', 'PT-102', 'HT-200 pressure high-high', 1, function (t) { return t['PT-102'].v >= 4.5; }],
+    ['PSHH-401', 'PT-401', 'Flare header (FKOD) pressure high-high', 1, function (t) { return t['PT-401'].v >= 1.4; }],
+    ['LSHH-401', 'LT-401', 'FKOD level high-high (liquid carry-over to flare)', 1, function (t) { return t['LT-401'].v >= 85; }],
+    ['LSHH-201', 'LT-201', 'TK-410 level high-high', 1, function (t) { return t['LT-201'].v >= 95; }]
+  ];
+  // final elements (effects); an effect fires at or above its minimum level
+  var EFFECTS = [
+    ['ESDV-001', 'Inlet ESDV-001 closes', 1],
+    ['BURN', 'HO-1 and E-103 burners trip', 1],
+    ['HORN', 'General alarm, beacons and horns', 1],
+    ['PUMPS', 'P-101 / P-201 / P-301 / P-501 trip', 2],
+    ['BDV', 'Blowdown BDV-001 opens to flare', 2]
+  ];
+
   var TRIPS = { 'P-101A': 1, 'P-101B': 1, 'P-201A': 1, 'P-201B': 1, 'P-301A': 1, 'P-301B': 1, 'P-401A': 1, 'P-401B': 1, 'P-501': 1 };
   var EVENT_ALARMS = [
     ['P-101A TRIP', 'Transfer pump P-101A tripped', 2, function (s) { return s.pumps['P-101A'] === 'TRIPPED'; }],
@@ -138,17 +189,33 @@
     ['ESD-1 ACTIVE', 'Emergency shutdown (ESD-1) active', 1, function (s) { return s.esd.level === 2; }],
     ['POWER FAIL',  'Main power failure', 1, function (s) { return !s.power.on; }],
     ['PSV OPEN',    'PSV lifting to flare', 1, function (s) { return s.sc.psv || s.v101.psv || s.ht.psv; }],
-    ['GAS DETECTED', 'Gas detection (confirmed)', 1, function (s) { return s.hazard.gas; }],
-    ['FIRE DETECTED', 'Fire detection (confirmed)', 1, function (s) { return s.hazard.fire; }],
+    ['F&G OVERRIDE', 'Fire and gas detector override(s) active - detection degraded', 2, function (s) { return Object.keys(s.fgs.ovr).length > 0; }],
+    ['F&G KEY', 'F&G inhibit key switch in OVERRIDE position', 2, function (s) { return s.fgs.key; }],
+    ['SIS BYPASS', 'Process shutdown cause bypass active', 2, function (s) { return Object.keys(s.ceByp).length > 0; }],
+    ['OVR EXPIRING', 'F&G override expires in less than 10 min - re-evaluate', 3, function (s) { for (var k in s.fgs.ovr) if (s.fgs.ovr[k] - s.t < 600) return true; for (var c in s.ceByp) if (s.ceByp[c] - s.t < 600) return true; return false; }],
     ['G-1 TRIP', 'Generator G-1 tripped', 1, function (s) { return s.gen['G-1'] === 'TRIPPED'; }],
     ['G-2 TRIP', 'Generator G-2 tripped', 1, function (s) { return s.gen['G-2'] === 'TRIPPED'; }],
-    ['G-3 TRIP', 'Generator G-3 tripped', 1, function (s) { return s.gen['G-3'] === 'TRIPPED'; }],
+    ['N2 PKG TRIP', 'N2 package tripped', 2, function (s) { return s.n2.pkg === 'TRIPPED'; }],
+    ['LP PILOT OUT', 'LP flare pilot flame-out (TK-410 cold vent venting)', 2, function (s) { return s.lpf.pilot === 'OUT'; }],
+    ['TK410 PVRV LIFT', 'TK-410 PVRV relieving to atmosphere', 1, function (s) { return s.tank.lift; }],
+    ['TK410 VACUUM', 'TK-410 vacuum relief open (air ingress)', 1, function (s) { return s.tank.vac; }],
     ['LOAD SHED', 'Load shedding active (generation short)', 1, function (s) { return s.power.shed; }],
     ['POWER OVERLOAD', 'Electrical demand above generation', 1, function (s) { return s.power.demand > s.power.cap && s.power.on; }],
     ['LACT DIVERT', 'LACT diverting: export BS&W out of spec', 2, function (s) { return s.lact.divert; }],
     ['LACT PROVE DUE', 'LACT meter factor out of tolerance - prove meter', 3, function (s) { return Math.abs(s.lact.dev) > 0.003; }],
     ['LACT SAMPLER FULL', 'LACT sampler pot nearly full', 3, function (s) { return s.lact.samp > 95; }]
   ];
+  FG_ZONES.forEach(function (zz) {
+    var Z = zz[0];
+    FG_KEYS.forEach(function (k) {
+      var T = FG_TYPES[k], lbl = T.name + ' ' + Z;
+      EVENT_ALARMS.push([T.pre + 'A-' + Z + ' LOW', lbl + ' detected (1oo2 above ' + T.lo + ' ' + T.unit + ')', 2, function (s) { return s.fgs.z[Z][k].low && !s.fgs.z[Z][k].high; }]);
+      EVENT_ALARMS.push([T.pre + 'A-' + Z + ' HIGH', lbl + ' HIGH (1oo2 above ' + T.hi + ' ' + T.unit + ')', 1, function (s) { return s.fgs.z[Z][k].high; }]);
+    });
+    EVENT_ALARMS.push(['FGS CONF ' + Z, 'F&G CONFIRMED in zone ' + Z + ' (2oo2): ESD-1 demand', 1, function (s) { return FG_KEYS.some(function (k) { return s.fgs.z[Z][k].conf; }); }]);
+    EVENT_ALARMS.push(['DET FAULT ' + Z, 'Detector fault in zone ' + Z, 2, function (s) { return FG_KEYS.some(function (k) { return s.fgs.z[Z][k].fault; }); }]);
+    EVENT_ALARMS.push(['ZONE BLIND ' + Z, 'Zone ' + Z + ' blind: no healthy detector left for a gas type', 1, function (s) { return FG_KEYS.some(function (k) { return s.fgs.z[Z][k].blind; }); }]);
+  });
   var VIBP = ['P-101A', 'P-101B', 'P-201A', 'P-201B', 'P-301A', 'P-301B', 'P-401A', 'P-401B'];
   var PUMPS = VIBP.concat(['P-501']);
   VIBP.forEach(function (p) {
@@ -164,34 +231,34 @@
   // ------------------------------------------------------------------ control loops
   // id, desc, unit, lo, hi, sp, kp, ti(s), dir(+1 direct/-1 reverse), PV tag, output (valve/fan), fail position, pneumatic?
   var LOOP_DEFS = [
-    ['LIC-001', 'SC-101 oil level',          '%',    0, 100, 50,  1.5, 400,   1, 'LT-001', 'LCV-001', 0, 1],
-    ['LIC-002', 'SC-101 water interface',    '%',    0, 100, 25,  0.6, 1500,  1, 'LI-002', 'LCV-002', 0, 1],
-    ['PIC-001', 'SC-101 pressure (to FKOD)', 'barg', 0, 20,  12,  4.0, 150,   1, 'PT-001', 'PCV-001', 0, 1],
-    ['LIC-101', 'V-101 oil level',           '%',    0, 100, 50,  1.5, 400,   1, 'LT-101', 'LCV-101', 0, 1],
-    ['LIC-102', 'V-101 water interface',     '%',    0, 100, 25,  3.0, 1800,  1, 'LI-102', 'LCV-102', 0, 1],
-    ['PIC-101', 'V-101 pressure (to FKOD)',  'barg', 0, 12,  6,   4.0, 150,   1, 'PT-101', 'PCV-101', 0, 1],
+    ['LIC-001', 'V-001 oil level',          '%',    0, 100, 50,  1.5, 400,   1, 'LT-001', 'LCV-001', 0, 1],
+    ['LIC-002', 'V-001 water interface',    '%',    0, 100, 25,  0.6, 1500,  1, 'LI-002', 'LCV-002', 0, 1],
+    ['PIC-001', 'V-001 pressure (to FKOD)', 'barg', 0, 20,  12,  4.0, 150,   1, 'PT-001', 'PCV-001', 0, 1],
+    ['LIC-101', 'V-100 oil level',           '%',    0, 100, 50,  1.5, 400,   1, 'LT-101', 'LCV-101', 0, 1],
+    ['LIC-102', 'V-100 water interface',     '%',    0, 100, 25,  3.0, 1800,  1, 'LI-102', 'LCV-102', 0, 1],
+    ['PIC-101', 'V-100 pressure (to FKOD)',  'barg', 0, 12,  6,   4.0, 150,   1, 'PT-101', 'PCV-101', 0, 1],
     ['TIC-101', 'HO-1 hot oil temperature',  '°C',   0, 250, 190, 1.0, 150,  -1, 'TT-101', 'TCV-101', 0, 1],
-    ['TIC-102', 'V-102 temperature (E-103)', '°C',   0, 120, 85,  0.6, 600,  -1, 'TT-102', 'TCV-102', 0, 1],
-    ['TIC-103', 'E-102 outlet temperature',  '°C',   0, 120, 78,  0.8, 240,  -1, 'TT-103', 'TCV-103', 0, 1],
-    ['LIC-103', 'V-102 level (pump disch.)', '%',    0, 100, 50,  1.5, 400,   1, 'LT-103', 'LCV-103', 0, 1],
-    ['LIC-104', 'V-102 water interface',     '%',    0, 100, 25,  3.0, 1600,  1, 'LI-104', 'LCV-104', 0, 1],
-    ['PIC-102', 'V-102 pressure (to FKOD)',  'barg', 0, 8,   2.5, 4.0, 150,   1, 'PT-102', 'PCV-102', 0, 1],
+    ['TIC-102', 'HT-200 temperature (E-103)', '°C',   0, 120, 85,  0.6, 600,  -1, 'TT-102', 'TCV-102', 0, 1],
+    ['TIC-103', 'V-210 outlet temperature',  '°C',   0, 120, 78,  0.8, 240,  -1, 'TT-103', 'TCV-103', 0, 1],
+    ['LIC-103', 'HT-200 level (pump disch.)', '%',    0, 100, 50,  1.5, 400,   1, 'LT-103', 'LCV-103', 0, 1],
+    ['LIC-104', 'HT-200 water interface',     '%',    0, 100, 25,  3.0, 1600,  1, 'LI-104', 'LCV-104', 0, 1],
+    ['PIC-102', 'HT-200 pressure (to FKOD)',  'barg', 0, 8,   2.5, 4.0, 150,   1, 'PT-102', 'PCV-102', 0, 1],
     ['TIC-104', 'C-101 reboiler temperature', '°C',  0, 200, 120, 0.5, 600,  -1, 'TT-104', 'TCV-104', 0, 1],
     ['LIC-105', 'C-101 sump level',          '%',    0, 100, 50,  0.6, 300,   1, 'LT-105', 'LCV-105', 0, 1],
     ['PIC-104', 'C-101 pressure (to FKOD)',  'barg', 0, 6,   1.2, 4.0, 150,   1, 'PT-104', 'PCV-104', 0, 1],
     ['TIC-105', 'E-105 outlet temperature (fan VFD)', '°C', 0, 100, 48, 1.5, 120, 1, 'TT-105', 'FAN-105', 0, 0],
-    ['LIC-106', 'V-103 oil level',           '%',    0, 100, 50,  1.0, 400,   1, 'LT-106', 'LCV-106', 0, 1],
-    ['LIC-107', 'V-103 water interface',     '%',    0, 100, 25,  4.0, 2500,  1, 'LI-107', 'LCV-107', 0, 1],
-    ['PIC-103', 'V-103 pressure (to FKOD)',  'barg', 0, 4,   0.8, 4.0, 150,   1, 'PT-103', 'PCV-103', 0, 1],
+    ['LIC-106', 'V-110 oil level',           '%',    0, 100, 50,  1.0, 400,   1, 'LT-106', 'LCV-106', 0, 1],
+    ['LIC-107', 'V-110 water interface',     '%',    0, 100, 25,  4.0, 2500,  1, 'LI-107', 'LCV-107', 0, 1],
+    ['PIC-103', 'V-110 pressure (to FKOD)',  'barg', 0, 4,   0.8, 4.0, 150,   1, 'PT-103', 'PCV-103', 0, 1],
     ['FIC-201', 'Export flow',               'm3/h', 0, 900, 450, 0.5, 40,   -1, 'FT-201', 'FCV-201', 0, 1],
-    ['LIC-301', 'T-301 water level',         '%',    0, 100, 40,  1.0, 800,  1, 'LT-301', 'FCV-301', 0, 1],
+    ['LIC-301', 'TK-420 water level',         '%',    0, 100, 40,  1.0, 800,  1, 'LT-301', 'FCV-301', 0, 1],
     ['LIC-401', 'FKOD V-401 level',          '%',    0, 100, 20,  0.8, 900,   1, 'LT-401', 'LCV-401', 0, 1]
   ];
   var VALVES = ['LCV-001', 'LCV-002', 'PCV-001', 'LCV-101', 'LCV-102', 'PCV-101', 'TCV-101', 'TCV-102', 'TCV-103',
                 'LCV-103', 'LCV-104', 'PCV-102', 'TCV-104', 'LCV-105', 'PCV-104', 'FAN-105', 'LCV-106', 'LCV-107',
                 'PCV-103', 'FCV-201', 'FCV-301', 'LCV-401'];
   VALVES.forEach(function (id) { EVENT_ALARMS.push(['VDEV ' + id, 'Valve ' + id + ' position deviation (stuck?)', 3, function (s) { return s.valves[id].devT > 30; }]); });
-  var HAND = ['BV-HT', 'BV-SC', 'DR-001', 'DR-101', 'DR-102', 'DR-103', 'FP-401'];   // manual (hand) valves 0..100 %
+  var HAND = ['BV-HT', 'GV-1', 'GV-2', 'GV-3', 'GV-4', 'BV-CL', 'XV-N2', 'VENT-410', 'DR-001', 'DR-101', 'DR-102', 'DR-103', 'FP-401'];   // manual (hand) valves 0..100 %
 
   // ------------------------------------------------------------------ plant
   function createPlant(userCfg) {
@@ -221,9 +288,20 @@
     function logEvt(type, text) { P.log.unshift({ t: s ? s.t : 0, type: type, text: text }); if (P.log.length > 300) P.log.pop(); }
     function freshKpi() {
       return { flaredSm3: 0, ventSec: 0, flareLiqSec: 0, offspecM3: 0, exportedM3: 0, psdCount: 0, esdCount: 0, psvLifts: 0,
-               alarmSecP1: 0, tankContamSec: 0, maxPsc: 0, maxLsc: 0, minLsc: 100, maxL101: 0, maxPfk: 0, maxLfk: 0, maxTankL: 0, maxPv101: 0, tripCount: 0, maxWater: 0, lactDivertSec: 0, shelved: 0, floodSec: 0 };
+               alarmSecP1: 0, tankContamSec: 0, maxPsc: 0, maxLsc: 0, minLsc: 100, maxL101: 0, maxPfk: 0, maxLfk: 0, maxTankL: 0, maxPv101: 0, tripCount: 0, maxWater: 0, lactDivertSec: 0, shelved: 0, floodSec: 0, ovrCount: 0, ovrNoPtw: 0 };
     }
 
+    function freshFgs() {
+      var g = { key: false, resp: {}, ovr: {}, z: {}, det: {}, src: {}, fire: {}, auto: {}, c: {}, firstHigh: null };
+      FG_ZONES.forEach(function (zz) {
+        var Z = zz[0]; g.z[Z] = {}; g.c[Z] = { gas: 0, h2s: 0, fire: 0 };
+        FG_KEYS.forEach(function (k) {
+          g.z[Z][k] = { low: false, high: false, conf: false, fault: false, blind: false, vote: '2oo2' };
+          ['A', 'B'].forEach(function (p) { var id = FG_TYPES[k].pre + '-' + Z + '-' + p; g.det[id] = { id: id, type: k, zone: Z, pos: p, k: p === 'A' ? 1 : (k === 'fire' ? 0.9 : 0.8), val: 0, fault: null, ft: 0 }; });
+        });
+      });
+      return g;
+    }
     // ---- initial state
     function initState(mode) {
       var cold = mode === 'cold';
@@ -235,7 +313,8 @@
         test: { well: null },
         esdv: { pos: cold ? 0 : 100, cmd: cold ? 0 : 1 },
         esd: { level: cold ? 2 : 0, causes: [], reset: !cold },
-        hazard: { gas: false, fire: false, gasTimer: 0 },
+        hazard: { lpOut: false },
+        fgs: freshFgs(), ceByp: {}, horn: false,
         bdv: false,
         sc:   { vo: (cold ? 0.08 : 0.25) * Cc.sc.cap, vw: (cold ? 0.03 : 0.25) * Cc.sc.cap, P: cold ? 0.4 : Cc.sc.P, T: cold ? TAMB + 3 : Cc.wells.wellheadTemp - 1, b: cold ? 0.05 : 0.04, psv: false },
         hx1:  { Tc: cold ? TAMB + 3 : 69, Th: cold ? TAMB + 3 : 99 },
@@ -243,11 +322,13 @@
         hx2:  { T: cold ? TAMB + 3 : 78 },
         ht:   { vo: (cold ? 0.15 : 0.40) * Cc.ht.cap, vw: (cold ? 0.03 : 0.10) * Cc.ht.cap, P: cold ? 0.3 : Cc.ht.P, T: cold ? TAMB + 3 : Cc.ht.T,
                 b: cold ? 0.03 : 0.004, burner: cold ? 'OFF' : 'ON', purge: 0, psv: false },
-        col:  { v: (cold ? 0.15 : 0.5) * Cc.col.cap, P: cold ? 0.3 : Cc.col.P, Treb: cold ? TAMB + 3 : Cc.col.Treb, rvp: cold ? 15 : 8.6 },
+        col:  { h2s: cold ? 30 : 8, v: (cold ? 0.15 : 0.5) * Cc.col.cap, P: cold ? 0.3 : Cc.col.P, Treb: cold ? TAMB + 3 : Cc.col.Treb, rvp: cold ? 15 : 8.6 },
         ho:   { T: cold ? TAMB + 3 : Cc.ho.T, burner: cold ? 'OFF' : 'ON', purge: 0 },
         cool: { T: cold ? TAMB + 3 : 48.5 },
         v103: { vo: (cold ? 0.15 : 0.40) * Cc.v103.cap, vw: (cold ? 0.03 : 0.12) * Cc.v103.cap, P: cold ? 0.3 : Cc.v103.P, T: cold ? TAMB + 3 : 48.5, b: cold ? 0.03 : 0.0017 },
-        tank: { v: (cold ? 20 : Cc.tank.level) / 100 * Cc.tank.cap, bsw: 0.12 },
+        tank: { v: (cold ? 20 : Cc.tank.level) / 100 * Cc.tank.cap, bsw: 0.12, P: 3, lift: false, vac: false },
+        n2: { pkg: 'RUNNING', P: 7.5, flow: 0, cd: 0 },
+        lpf: { P: 0.008, pilot: 'ON', flow: 0 },
         slop: { v: Cc.slop.level / 100 * Cc.slop.cap },
         water: { v: Cc.water.level / 100 * Cc.water.cap, ppm: 22, ppmIn: 147 },
         fk:   { v: 0.20 * Cc.fkod.cap, P: cold ? 0.05 : Cc.fkod.P, surge: 0, psv: false },
@@ -255,12 +336,12 @@
         pumps: { 'P-101A': cold ? 'STOPPED' : 'RUNNING', 'P-101B': 'STOPPED', 'P-201A': cold ? 'STOPPED' : 'RUNNING', 'P-201B': 'STOPPED',
                  'P-301A': cold ? 'STOPPED' : 'RUNNING', 'P-301B': 'STOPPED', 'P-401A': 'RUNNING', 'P-401B': 'STOPPED', 'P-501': 'STOPPED' },
         auto: { 'P-101': true, 'P-201': true, 'P-301': true, 'P-401': true },
-        hv: { 'BV-HT': 0, 'BV-SC': 0, 'DR-001': 0, 'DR-101': 0, 'DR-102': 0, 'DR-103': 0, 'FP-401': 30 },
+        hv: { 'BV-HT': 0, 'GV-1': 100, 'GV-2': 100, 'GV-3': 0, 'GV-4': 0, 'BV-CL': 0, 'XV-N2': 50, 'VENT-410': 100, 'DR-001': 0, 'DR-101': 0, 'DR-102': 0, 'DR-103': 0, 'FP-401': 30 },
         dem: Cc.dem, pipe: { avail: 1 },
         route: 'AUTO', routeNow: 'TANK', exp: { q: 0 }, inl: { q: 0 },
         suppressLowUntil: 0, flows: {}, valves: {}, lock: {},
         weather: { amp: C.weather.amp }, amb: TAMB,
-        gen: { 'G-1': 'RUNNING', 'G-2': 'RUNNING', 'G-3': 'STOPPED', cd: { 'G-1': 0, 'G-2': 0, 'G-3': 0 } },
+        gen: { 'G-1': 'RUNNING', 'G-2': 'RUNNING', cd: { 'G-1': 0, 'G-2': 0 } },
         fg: { P: cold ? 0.3 : 4.0 }, seal: { lvl: 70 },
         chem: { ci: Cc.chem.ci, af: Cc.chem.af, cr: 2.2 },
         lact: { mf: 1, mfTrue: 1.0, bsw: 0.12, divert: false, divT: 0, prove: 0, samp: 12, dev: 0, lastProve: 0 },
@@ -298,39 +379,47 @@
       set('FT-001', 'Production inlet flow', 'm3/h', s.inl.q, 0, 900);
       set('PT-000', 'Wellhead pressure', 'barg', s.well.Pw * s.esdv.pos / 100 + (1 - s.esdv.pos / 100) * s.sc.P, 0, 60);
       set('TT-000', 'Wellhead temperature', '°C', s.well.Tw, 0, 100);
-      set('LT-001', 'SC-101 level', '%', (s.sc.vo + s.sc.vw) / cs.sc.cap * 100, 0, 100);
-      set('LI-002', 'SC-101 interface', '%', s.sc.vw / cs.sc.cap * 100, 0, 100);
-      set('PT-001', 'SC-101 pressure', 'barg', s.sc.P, 0, 20);
-      set('TT-001', 'SC-101 temperature', '°C', s.sc.T, 0, 150);
-      set('TT-106', 'E-101 cold outlet (V-101 inlet)', '°C', s.hx1.Tc, 0, 150);
-      set('TT-107', 'E-101 hot outlet', '°C', s.hx1.Th, 0, 200);
-      set('LT-101', 'V-101 level', '%', (s.v101.vo + s.v101.vw) / cs.v101.cap * 100, 0, 100);
-      set('LI-102', 'V-101 interface', '%', s.v101.vw / cs.v101.cap * 100, 0, 100);
-      set('PT-101', 'V-101 pressure', 'barg', s.v101.P, 0, 12);
-      set('TT-103', 'E-102 outlet temperature', '°C', s.hx2.T, 0, 150);
+      set('LT-001', 'V-001 level', '%', (s.sc.vo + s.sc.vw) / cs.sc.cap * 100, 0, 100);
+      set('LI-002', 'V-001 interface', '%', s.sc.vw / cs.sc.cap * 100, 0, 100);
+      set('PT-001', 'V-001 pressure', 'barg', s.sc.P, 0, 20);
+      set('TT-001', 'V-001 temperature', '°C', s.sc.T, 0, 150);
+      set('TT-106', 'HX-1 cold outlet (V-100 inlet)', '°C', s.hx1.Tc, 0, 150);
+      set('TT-107', 'HX-1 hot outlet', '°C', s.hx1.Th, 0, 200);
+      set('LT-101', 'V-100 level', '%', (s.v101.vo + s.v101.vw) / cs.v101.cap * 100, 0, 100);
+      set('LI-102', 'V-100 interface', '%', s.v101.vw / cs.v101.cap * 100, 0, 100);
+      set('PT-101', 'V-100 pressure', 'barg', s.v101.P, 0, 12);
+      set('TT-103', 'V-210 outlet temperature', '°C', s.hx2.T, 0, 150);
       set('TT-101', 'HO-1 hot oil temperature', '°C', s.ho.T, 0, 250);
-      set('TT-102', 'V-102 temperature', '°C', s.ht.T, 0, 150);
-      set('LT-103', 'V-102 level', '%', (s.ht.vo + s.ht.vw) / cs.ht.cap * 100, 0, 100);
-      set('LI-104', 'V-102 interface', '%', s.ht.vw / cs.ht.cap * 100, 0, 100);
-      set('PT-102', 'V-102 pressure', 'barg', s.ht.P, 0, 8);
-      set('AT-103', 'V-102 outlet BS&W', '%', s.ht.b * 100, 0, 5);
+      set('TT-102', 'HT-200 temperature', '°C', s.ht.T, 0, 150);
+      set('LT-103', 'HT-200 level', '%', (s.ht.vo + s.ht.vw) / cs.ht.cap * 100, 0, 100);
+      set('LI-104', 'HT-200 interface', '%', s.ht.vw / cs.ht.cap * 100, 0, 100);
+      set('PT-102', 'HT-200 pressure', 'barg', s.ht.P, 0, 8);
+      set('AT-103', 'HT-200 outlet BS&W', '%', s.ht.b * 100, 0, 5);
       set('LT-105', 'C-101 sump level', '%', s.col.v / cs.col.cap * 100, 0, 100);
       set('PT-104', 'C-101 pressure', 'barg', s.col.P, 0, 6);
       set('TT-104', 'C-101 reboiler temperature', '°C', s.col.Treb, 0, 200);
       set('TT-105', 'E-105 outlet temperature', '°C', s.cool.T, 0, 100);
-      set('LT-106', 'V-103 level', '%', (s.v103.vo + s.v103.vw) / cs.v103.cap * 100, 0, 100);
-      set('LI-107', 'V-103 interface', '%', s.v103.vw / cs.v103.cap * 100, 0, 100);
-      set('PT-103', 'V-103 pressure', 'barg', s.v103.P, 0, 4);
-      set('AT-101', 'Crude BS&W (V-103 outlet)', '%', s.v103.b * 100, 0, 2);
+      set('LT-106', 'V-110 level', '%', (s.v103.vo + s.v103.vw) / cs.v103.cap * 100, 0, 100);
+      set('LI-107', 'V-110 interface', '%', s.v103.vw / cs.v103.cap * 100, 0, 100);
+      set('PT-103', 'V-110 pressure', 'barg', s.v103.P, 0, 4);
+      set('AT-101', 'Crude BS&W (V-110 outlet)', '%', s.v103.b * 100, 0, 2);
       set('AT-102', 'Crude RVP', 'psi', s.col.rvp, 0, 20);
+      Object.keys(s.fgs.det).forEach(function (id) { var d = s.fgs.det[id], T0 = FG_TYPES[d.type]; set(id, d.zone + ' ' + T0.name + ' detector ' + d.pos + (s.fgs.ovr[id] ? ' (OVERRIDDEN)' : ''), T0.unit, d.val, 0, T0.max); });
+      set('AT-103', 'C-101 outlet H2S in crude (stripped)', 'ppm', s.col.h2s, 0, 60);
+      set('TT-110', 'V-110 inlet temperature (after cooler / bypass mix)', '°C', s.v103.T, 0, 150);
+      set('FT-N2', 'N2 flow to C-101 stripping column', 'Sm3/h', s.n2.flow, 0, 200);
+      set('PT-N2', 'N2 package header pressure', 'barg', s.n2.P, 0, 12);
+      set('PT-410', 'TK-410 vapour space pressure', 'mbarg', s.tank.P, -10, 60);
+      set('PT-405', 'LP flare header pressure', 'barg', s.lpf.P, -0.01, 0.1);
+      set('FT-405', 'TK-410 cold vent flow to LP flare', 'm3/h', s.lpf.flow, 0, 600);
       set('PT-401', 'FKOD / flare header pressure', 'barg', s.fk.P, -0.2, 3);
       set('LT-401', 'FKOD V-401 level', '%', s.fk.v / cs.fkod.cap * 100, 0, 100);
       set('FT-401', 'Flare gas flow', 'Sm3/h', s.flare.flow, 0, 80000);
-      set('LT-201', 'T-101 shipping tank level', '%', s.tank.v / cs.tank.cap * 100, 0, 100);
-      set('AT-201', 'T-101 BS&W', '%', s.tank.bsw, 0, 2);
-      set('LT-202', 'T-102 slop tank level', '%', s.slop.v / cs.slop.cap * 100, 0, 100);
+      set('LT-201', 'TK-410 shipping tank level', '%', s.tank.v / cs.tank.cap * 100, 0, 100);
+      set('AT-201', 'TK-410 BS&W', '%', s.tank.bsw, 0, 2);
+      set('LT-202', 'TK-430 slop tank level', '%', s.slop.v / cs.slop.cap * 100, 0, 100);
       set('FT-201', 'Export flow', 'm3/h', s.exp.q, 0, 900);
-      set('LT-301', 'T-301 water tank level', '%', s.water.v / cs.water.cap * 100, 0, 100);
+      set('LT-301', 'TK-420 water tank level', '%', s.water.v / cs.water.cap * 100, 0, 100);
       set('FT-301', 'Water disposal flow', 'm3/h', s.flows.disp || 0, 0, 500);
       set('AT-301', 'Oil in water', 'ppm', s.water.ppm, 0, 200);
       set('PT-901', 'Instrument air pressure', 'barg', s.ia.P, 0, 9);
@@ -416,7 +505,7 @@
     // ---- electrical power: generators G-1..3, load shedding, blackout
     function powerSystem(dt) {
       var scP = Math.max(scL, 0.3), gens = 0, g, nRun = 0;
-      ['G-1', 'G-2', 'G-3'].forEach(function (g) {
+      ['G-1', 'G-2'].forEach(function (g) {
         if (s.gen[g] === 'STARTING') { s.gen.cd[g] -= dt; if (s.gen.cd[g] <= 0) { s.gen[g] = 'RUNNING'; logEvt('OP', g + ' running, on the bus'); } }
         if (s.gen[g] === 'RUNNING') gens++;
       });
@@ -479,8 +568,13 @@
         else if (/^TT-/.test(k)) L.push({ id: 'TG-' + k, area: 'Temperature', label: 'Local thermometer: ' + q.desc });
       });
       PUMPS.forEach(function (p) { L.push({ id: 'WD-' + p, area: 'Rotating', label: 'Walk-down of ' + p + ' (seal, bearing, noise)' }); });
-      ['G-1', 'G-2', 'G-3'].forEach(function (g) { L.push({ id: 'WD-' + g, area: 'Rotating', label: 'Walk-down of generator ' + g }); });
+      ['G-1', 'G-2'].forEach(function (g) { L.push({ id: 'WD-' + g, area: 'Rotating', label: 'Walk-down of generator ' + g }); });
       VALVES.forEach(function (v) { L.push({ id: 'SP-' + v, area: 'Valves', label: 'Check stem position of ' + v }); });
+      FG_ZONES.forEach(function (zz) { L.push({ id: 'FG-' + zz[0], area: 'Fire & gas', label: 'Portable gas / H2S monitor and visual check in zone ' + zz[0] + ' (' + zz[1] + ')' }); });
+      L.push({ id: 'WD-N2-PKG', area: 'Rotating', label: 'Walk-down of N2 package' });
+      L.push({ id: 'TK410-VENT', area: 'Tanks', label: 'TK-410 PVRV, flame arrestor and cold vent line to LP flare' });
+      L.push({ id: 'LPF-PILOT', area: 'Flare', label: 'Visual check of LP flare pilot flame' });
+      HAND.forEach(function (hv) { L.push({ id: 'HV-' + hv, area: 'Hand valves', label: 'Check stem position of hand valve ' + hv }); });
       L.push({ id: 'FLARE-PILOT', area: 'Flare', label: 'Visual check of flare pilot flame' });
       L.push({ id: 'SEAL-DRUM', area: 'Flare', label: 'Flare seal drum water level gauge' });
       L.push({ id: 'SG-HO1', area: 'Heaters', label: 'Burner sight glass HO-1' });
@@ -515,14 +609,26 @@
         if (out.length < n.length + 20 + st.length) out += 'No leaks, normal sound and temperature.';
         return out;
       }
+      m = id.match(/^FG-(Z\d)$/);
+      if (m) {
+        var zc = s.fgs.c[m[1]], zt = P.tagTable, ms = [];
+        ms.push('Portable monitor zone ' + m[1] + ': combustible gas ' + fmt(zc.gas, 0) + ' %LEL, H2S ' + fmt(zc.h2s, 1) + ' ppm, ' + (zc.fire > 0.2 ? 'FLAMES / FIRE VISIBLE' : 'no flame visible') + '.');
+        FG_KEYS.forEach(function (k) { ['A', 'B'].forEach(function (p) { var d = s.fgs.det[FG_TYPES[k].pre + '-' + m[1] + '-' + p], tv = zc[k] * (k === 'fire' ? 100 : 1) * d.k; if (Math.abs(d.val - tv) > 0.1 * FG_TYPES[k].max) ms.push(d.id + ' shows ' + fmt(d.val, 0) + ' ' + FG_TYPES[k].unit + ' but the real level is ' + fmt(tv, 0) + ': detector is SPURIOUS/FAULTY.'); }); });
+        return ms.join(' ');
+      }
+      if (id === 'WD-N2-PKG') return 'N2 package: ' + s.n2.pkg + ', header ' + fmt(s.n2.P, 1) + ' barg' + (s.n2.pkg === 'TRIPPED' ? ', trip flag on local panel (power / compressor)' : ', normal');
+      if (id === 'TK410-VENT') return 'TK-410 vent line: VENT-410 stem at ' + fmt(s.hv['VENT-410'], 0) + ' %, vapour pressure ' + fmt(s.tank.P, 1) + ' mbarg, PVRV ' + (s.tank.lift ? 'LIFTING, vapour smell at tank roof' : s.tank.vac ? 'vacuum side open, drawing air' : 'seated') + (s.hv['VENT-410'] < 50 ? '. Vent valve is closed or choked!' : '.');
+      if (id === 'LPF-PILOT') return 'LP flare pilot is ' + (s.lpf.pilot === 'ON' ? 'burning steadily' : 'OUT, no flame visible');
+      m = id.match(/^HV-(.+)$/);
+      if (m) return m[1] + ' hand valve stem at ' + fmt(s.hv[m[1]], 0) + ' %';
       m = id.match(/^SP-(.+)$/);
       if (m) { var v = s.valves[m[1]]; return m[1] + ' stem at ' + fmt(v.pos, 0) + ' %, DCS demand ' + fmt(v.tgt, 0) + ' %' + (Math.abs(v.pos - v.tgt) > 8 ? '  <-- MISMATCH, valve is not following (stuck or no air)' : ' (agrees)'); }
       if (id === 'FLARE-PILOT') return 'Flare pilot is ' + (s.flare.pilot === 'ON' ? 'burning steadily' : 'OUT, no flame visible');
       if (id === 'SEAL-DRUM') return 'Seal drum water level ' + fmt(s.seal.lvl, 0) + ' % (normal 60 to 80 %)';
       if (id === 'SG-HO1') return 'HO-1 burner: ' + s.ho.burner + (s.ho.burner === 'ON' ? ', stable blue flame' : ', no flame');
       if (id === 'SG-E103') return 'E-103 burner: ' + s.ht.burner + (s.ht.burner === 'ON' ? ', stable blue flame' : ', no flame');
-      if (id === 'LAB-CRUDE') return 'Lab result crude: BS&W ' + fmt(s.tank.bsw, 2) + ' % in T-101, ' + fmt(P.tagTable['AT-101'].tv, 2) + ' % at V-102 outlet';
-      if (id === 'LAB-WATER') return 'Lab result water: oil in water ' + fmt(P.tagTable['AT-301'].tv, 0) + ' ppm at T-301';
+      if (id === 'LAB-CRUDE') return 'Lab result crude: BS&W ' + fmt(s.tank.bsw, 2) + ' % in TK-410, ' + fmt(P.tagTable['AT-101'].tv, 2) + ' % at HT-200 outlet';
+      if (id === 'LAB-WATER') return 'Lab result water: oil in water ' + fmt(P.tagTable['AT-301'].tv, 0) + ' ppm at TK-420';
       if (id === 'LACT-POT') return 'Sampler pot ' + fmt(s.lact.samp, 0) + ' % full';
       if (id === 'CHEM-TANKS') return 'Chemical tanks OK. Demulsifier ' + s.dem + ' ppm, corrosion inhibitor ' + s.chem.ci + ' ppm, antifoam ' + s.chem.af + ' ppm';
       return 'Checked';
@@ -536,7 +642,7 @@
         ['Confirm fuel gas header above 2.5 barg (PT-902)', function (s) { return s.fg.P > 2.5; }],
         ['Light HO-1 (purge, then burner on)', function (s) { return s.ho.burner === 'ON'; }],
         ['Hot oil above 140 degC', function (s) { return s.ho.T > 140; }],
-        ['Light E-103 on V-102', function (s) { return s.ht.burner === 'ON'; }],
+        ['Light E-103 on HT-200', function (s) { return s.ht.burner === 'ON'; }],
         ['Start a transfer pump P-101', function (s) { return s.pumps['P-101A'] === 'RUNNING' || s.pumps['P-101B'] === 'RUNNING'; }],
         ['Start an export pump P-201', function (s) { return s.pumps['P-201A'] === 'RUNNING' || s.pumps['P-201B'] === 'RUNNING'; }],
         ['Export above 300 m3/h', function (s) { return s.exp.q > 300; }]] },
@@ -550,7 +656,7 @@
       changeover: { title: 'Transfer pump changeover P-101A to P-101B', steps: [
         ['Start P-101B (both running)', function (s) { return s.pumps['P-101B'] === 'RUNNING'; }],
         ['Stop P-101A', function (s) { return s.pumps['P-101A'] === 'STOPPED'; }],
-        ['V-102 level between 30 and 80 % after the change', function (s) { var l = P.tagTable['LT-103'].tv; return l > 30 && l < 80; }]] },
+        ['HT-200 level between 30 and 80 % after the change', function (s) { var l = P.tagTable['LT-103'].tv; return l > 30 && l < 80; }]] },
       pumpiso: { title: 'Isolate P-101A for maintenance', steps: [
         ['Standby P-101B running', function (s) { return s.pumps['P-101B'] === 'RUNNING'; }],
         ['P-101A stopped', function (s) { return s.pumps['P-101A'] !== 'RUNNING'; }],
@@ -602,11 +708,19 @@
         case 'foam': s.flt.foam = o.v !== undefined ? o.v : 0.8; break;
         case 'emul': s.flt.emul = o.v !== undefined ? o.v : 0.6; break;
         case 'hx2': s.flt.hx2foul = o.v !== undefined ? o.v : 0.5; break;
+        case 'leak': { var zk = o.kind || 'gas'; s.fgs.src[id + ':' + zk] = o.rate !== undefined ? o.rate : (zk === 'gas' ? 0.5 : 0.1); logEvt('FAULT', (zk === 'gas' ? 'Gas' : 'H2S') + ' release in ' + id); break; }
+        case 'fire': s.fgs.fire[id] = true; logEvt('FAULT', 'Fire in ' + id); break;
+        case 'detector': if (s.fgs.det[id]) { s.fgs.det[id].fault = o.kind || 'spike'; s.fgs.det[id].ft = 0; if (o.dur) s.fgs.det[id].until = s.t + o.dur; logEvt('FAULT', 'Detector ' + id + ' fault: ' + (o.kind || 'spike')); } break;
+        case 'n2': s.n2.pkg = 'TRIPPED'; logEvt('ALM', 'N2 package tripped'); break;
+        case 'lpout': s.hazard.lpOut = true; s.lpf.pilot = 'OUT'; break;
+        case 'vent': s.hv['VENT-410'] = 0; break;
         case 'gen': if (s.gen[id] !== undefined) { s.gen[id] = 'TRIPPED'; logEvt('ALM', id + ' tripped'); } break;
         case 'lact': s.lact.mfTrue = o.v !== undefined ? o.v : 1.006; break;
         case 'hc': s.wt.eff = o.v !== undefined ? o.v : 0.4; break;
         case 'burner': if (id === 'HO-1') s.ho.burner = 'TRIPPED'; else s.ht.burner = 'TRIPPED'; break;
         case 'clear':
+          s.fgs.src = {}; s.fgs.fire = {}; for (var dk in s.fgs.det) { s.fgs.det[dk].fault = null; s.fgs.det[dk].ft = 0; }
+          s.hazard.lpOut = false;
           s.inst = {}; for (var v in s.valves) s.valves[v].stuck = false;
           for (var pp in s.pf) s.pf[pp] = { seal: 0, sealRate: 0, bear: 0, fail: false, vib: 0 };
           s.flt.foam = 0; s.flt.emul = 0; s.flt.hx2foul = 0; s.lact.mfTrue = 1.0; s.wt.eff = 0.85; break;
@@ -619,8 +733,8 @@
       var tg = P.tagTable, L = [], now = new Date();
       L.push('SHIFT HANDOVER - ' + C.facilityName + '  (sim time ' + Math.round(s.t / 60) + ' min)');
       L.push('Production: inlet ' + fmt(tg['FT-001'].v, 0) + ' m3/h, export ' + fmt(s.exp.q, 0) + ' m3/h, water cut ' + fmt(s.well.wc * 100, 0) + ' %');
-      L.push('Tank T-101 ' + fmt(tg['LT-201'].v, 0) + ' %, BS&W ' + fmt(s.tank.bsw, 2) + ' %. ESD level ' + s.esd.level);
-      L.push('Power: ' + ['G-1', 'G-2', 'G-3'].map(function (g) { return g + ' ' + s.gen[g]; }).join(', ') + (s.power.shed ? ' (LOAD SHED ACTIVE)' : ''));
+      L.push('Tank TK-410 ' + fmt(tg['LT-201'].v, 0) + ' %, BS&W ' + fmt(s.tank.bsw, 2) + ' %. ESD level ' + s.esd.level);
+      L.push('Power: ' + ['G-1', 'G-2'].map(function (g) { return g + ' ' + s.gen[g]; }).join(', ') + (s.power.shed ? ' (LOAD SHED ACTIVE)' : ''));
       var run = Object.keys(s.pumps).filter(function (k) { return s.pumps[k] === 'RUNNING'; }), trip = Object.keys(s.pumps).filter(function (k) { return s.pumps[k] === 'TRIPPED'; });
       L.push('Pumps running: ' + (run.join(', ') || 'none') + (trip.length ? '. Tripped: ' + trip.join(', ') : ''));
       var pk = Object.keys(s.ptw); L.push('Open permits: ' + (pk.length ? pk.map(function (k) { return s.ptw[k].no + ' on ' + k + (s.ptw[k].ready ? ' (ready to close)' : ''); }).join('; ') : 'none'));
@@ -656,7 +770,7 @@
       var gasTot = ((oilIn - slopRet) / (1 + W.slug) * (1 + 0.3 * W.slug) + slopRet) * GOR;   // slugs are liquid-rich
       s.sc.T += (W.Tw - 1 - s.sc.T) * Math.min(1, dt / 120);
 
-      // ---------- slug catcher SC-101
+      // ---------- slug catcher V-001
       var sc = s.sc, lvlSC = (sc.vo + sc.vw) / R.sc.cap, ifcSC = sc.vw / R.sc.cap;
       var qSC = vflow(Vv('LCV-001'), 820 * scL, sc.P - s.v101.P + 0.3 + 0.4 * lvlSC, 6.0);
       qSC = Math.min(qSC, (sc.vo + sc.vw) / h * 0.9);
@@ -675,9 +789,9 @@
       gasBal(sc, R.sc.gasVol, gasSCin, gasOutSC + bdSC + psvSC + blowSC, (oilIn + watIn - qSC - qSCw - dSC) * h, h, 40);
       var wcFrac = clamp(wcNow, 0, 0.95);
 
-      // ---------- heat exchanger E-101 (HX-1): cold = SC oil, hot = stripped crude (computed below, uses last step's hot inlet)
+      // ---------- heat exchanger HX-1: cold = SC oil, hot = stripped crude (computed below, uses last step's hot inlet)
       var Cc1 = capr(qSC, b0);
-      // ---------- V-101
+      // ---------- V-100
       var v1 = s.v101, lvl1 = (v1.vo + v1.vw) / R.v101.cap, ifc1 = v1.vw / R.v101.cap;
       var q101 = vflow(Vv('LCV-101'), 800 * scL, v1.P - s.ht.P + 0.3 + 0.4 * lvl1, 3.8);
       q101 = Math.min(q101, (v1.vo + v1.vw) / h * 0.9);
@@ -704,7 +818,7 @@
       var heatHO = 0;
       if (ho.burner === 'PURGE') { ho.purge -= dt; if (ho.purge <= 0) ho.burner = 'ON'; }
       if (ho.burner === 'ON') heatHO = R.ho.maxKW * Vv('TCV-101') / 100;
-      // E-102 (HX-2) outlet: explicit solution of the hot oil exchange
+      // V-210 outlet: explicit solution of the hot oil exchange
       var Cc2 = Math.max(capr(q101, b1), 1);
       var G2 = SPEC.hxG2 * Vv('TCV-103') / 100 * (1 - s.flt.hx2foul);
       var Tin2 = v1.T;
@@ -712,14 +826,17 @@
       s.hx2.T += (T2tgt - s.hx2.T) * Math.min(1, dt / 60);
       var duty2 = Cc2 * (s.hx2.T - Tin2);
 
-      // ---------- heater treater V-102 with bypass BV-HT
+      // ---------- heater treater HT-200 with bypass BV-HT
       var fb = clamp(s.hv['BV-HT'] / 100 * 0.85, 0, 0.85);
       var qBH = q101 * fb, qHT = q101 - qBH;
       var lvl2 = (ht.vo + ht.vw) / R.ht.cap;
       var nP101 = (s.pumps['P-101A'] === 'RUNNING' ? 1 : 0) + (s.pumps['P-101B'] === 'RUNNING' ? 1 : 0);
       var Ppd = nP101 > 0 ? (5.0 * (nP101 > 1 ? 1.1 : 1)) : 0;
+      var gvc = function (x) { return Math.min(1, x / 40); };
+      var cSt = Math.min(gvc(s.hv['GV-1']), gvc(s.hv['GV-2'])), cBy = Math.min(1, gvc(s.hv['GV-3']) + gvc(s.hv['GV-4']));
+      var mfBlk = Math.min(1, (cSt + cBy) / 0.2);
       var q103 = nP101 > 0 ? vflow(Vv('LCV-103'), 800 * scL, ht.P + Ppd - col.P - 1.5, 4.8) : 0;
-      q103 = Math.min(q103, (ht.vo + ht.vw) / h * 0.9);
+      q103 = Math.min(q103, (ht.vo + ht.vw) / h * 0.9) * mfBlk;
       var q104w = vflow(Vv('LCV-104'), 40 * scW, ht.P - 0.5 + 0.3, 2.3);
       var b2 = ht.b;
       var r2 = vessel(ht, R.ht.cap, qHT * (1 - b1), qHT * b1, q103, b2, q104w, h);
@@ -740,22 +857,22 @@
       fuelFlow = (heatHO + heatHT) * 0.10 * 0.9;
       var fuelSup = Math.min(fuelFlow, 3000 * scG);
 
-      // gas balances V-101 (fuel gas comes from V-101), HT
+      // gas balances V-100 (fuel gas comes from V-100), HT
       var dLiq1 = (qSC - q101 - q102w - dV1) * h;
       gasBal(v1, R.v101.gasVol, gas101in, gasOut101 + bd101 + psv101 + blow101 + (fgOK ? fuelSup : 0), dLiq1, h, 30);
       gasBal(ht, R.ht.gasVol, gasHTin + blow101, gasOutHT + psvHT, (qHT - q103 - q104w - dHT) * h, h, 15);
-      // V-101 temperature follows HX-1 cold outlet
+      // V-100 temperature follows HX-1 cold outlet
       v1.T += (s.hx1.Tc - v1.T) * Math.min(1, dt / 90);
 
-      // ---------- manifold MF-2, bypass BV-SC, stripping column
+      // ---------- manifold MF-2 (GV-1 stripper in, GV-2 stripper out, GV-3/GV-4 straight bypass), N2 stripping column
       var qM = q103 + qBH;
       var bMF = qM > 0.01 ? (q103 * b2 + qBH * b1) / qM : b2;
       var TMF = qM > 0.01 ? (q103 * ht.T + qBH * s.hx2.T) / qM : ht.T;
-      var fs = clamp(s.hv['BV-SC'] / 100 * 0.85, 0, 0.85);
+      var fs = (cSt + cBy) > 0.001 ? clamp(cBy / (cSt + cBy) * 1.7, 0, 0.85) : 0;
       var qCin = qM * (1 - fs), qDir = qM * fs;
       var lvlC = col.v / R.col.cap;
       var q105 = vflow(Vv('LCV-105'), 800 * scL, col.P - s.v103.P + 3.0 + 0.4 * lvlC, 3.4);
-      q105 = Math.min(q105, col.v / h * 0.9);
+      q105 = Math.min(q105, col.v / h * 0.9) * gvc(s.hv['GV-2']);
       col.v = clamp(col.v + (qCin - q105) * h, 0, R.col.cap);
       var dCol = 0;
       var Cf = Math.max(capr(qCin, bMF), 5 * scO);
@@ -766,13 +883,20 @@
       col.Treb = clamp(col.Treb, 0, 220);
       ho.T += dt * (heatHO - duty2 - Qreb - SPEC.hoLoss * (ho.T - TAMB)) / SPEC.hoC;
       ho.T = clamp(ho.T, 0, 260);
-      var rvpCol = clamp(14.2 - 0.14 * (col.Treb - 80) + 0.6 * (col.P - 1.2), 3, 18);
+      var n2 = s.n2;
+      if (n2.pkg === 'STARTING') { n2.cd -= dt; if (n2.cd <= 0) { n2.pkg = 'RUNNING'; logEvt('OP', 'N2 package running'); } }
+      n2.P += (((n2.pkg === 'RUNNING' && s.power.on) ? 7.5 : 0) - n2.P) * Math.min(1, dt / 45);
+      if (n2.pkg === 'RUNNING' && !s.power.on) { n2.pkg = 'TRIPPED'; logEvt('ALM', 'N2 package tripped: power loss'); }
+      var n2eff = clamp(s.hv['XV-N2'] / 100 * n2.P / 7.5, 0, 1.2) * (cSt > 0.2 ? 1 : 0.2);
+      n2.flow = 100 * scG * s.hv['XV-N2'] / 100 * n2.P / 7.5 * (col.P + 2 > n2.P ? 0 : 1);
+      var rvpCol = clamp(14.2 - 0.14 * (col.Treb - 80) + 0.6 * (col.P - 1.2) - 3.0 * (n2eff - 0.5), 3, 18);
+      col.h2s += (clamp(30 * Math.exp(-2.64 * n2eff) * (1 + 0.02 * (120 - col.Treb)) * (1 + 0.5 * fs), 1, 60) - col.h2s) * Math.min(1, dt / 240);
       var rvpFeed = clamp(14.2 - 0.14 * (TMF - 80) + 1.8, 3, 20);
-      var gasCin = qCin * (1 - bMF) * GOR * 0.03 + 0.7 * Math.max(col.Treb - 100, 0) * (qCin / 100) * scG / Math.max(scO, 0.05) * 0.2;
+      var gasCin = 8 * scG * (n2eff - 0.5) + qCin * (1 - bMF) * GOR * 0.03 + 0.7 * Math.max(col.Treb - 100, 0) * (qCin / 100) * scG / Math.max(scO, 0.05) * 0.2;
       var gasOutC = vflow(Vv('PCV-104'), 1560 * scG, col.P - s.fk.P, 0.9);
       gasBal(col, R.col.gasVol, gasCin, gasOutC, (qCin - q105) * h, h, 12);
 
-      // ---------- HX-1 hot side, cooler E-105, V-103
+      // ---------- HX-1 hot side, cooler E-105, V-110
       var qHX = q105 + qDir;
       var bV3in = bMF;
       if (qHX > 0.05) {
@@ -793,8 +917,9 @@
       var b3 = v3.b;
       var r3 = vessel(v3, R.v103.cap, qHX * (1 - bV3in), qHX * bV3in, q106, b3, q107w, h);
       var dV3 = drainFrom(v3, 'DR-103', h);
-      v3.T += (s.cool.T - v3.T) * Math.min(1, dt / 90);
-      var gas103in = qHX * (1 - bV3in) * GOR * 0.02;
+      var fcb = clamp(s.hv['BV-CL'] / 100 * 0.9, 0, 0.9);
+      v3.T += ((s.cool.T * (1 - fcb) + s.hx1.Th * fcb) - v3.T) * Math.min(1, dt / 90);
+      var gas103in = qHX * (1 - bV3in) * GOR * 0.02 * (1 + 0.03 * Math.max(0, v3.T - 55));
       var gasOut103 = vflow(Vv('PCV-103'), 1040 * scG, v3.P - s.fk.P, 0.5);
       gasBal(v3, R.v103.gasVol, gas103in, gasOut103, (qHX - q106 - q107w - dV3) * h, h, 8);
 
@@ -812,11 +937,11 @@
       var b3eq = bMF * (1 - r3v);
       var kb = Math.min(1, dt / 90);
       sc.b += (b0eq - sc.b) * kb; v1.b += (b1eq - v1.b) * kb; ht.b += (b2eq - ht.b) * kb; v3.b += (b3eq - v3.b) * kb;
-      var rvpMix = qHX > 0.05 ? (q105 * rvpCol + qDir * rvpFeed) / qHX - 0.2 : rvpCol;
+      var rvpMix = (qHX > 0.05 ? (q105 * rvpCol + qDir * rvpFeed) / qHX - 0.2 : rvpCol) + 0.06 * Math.max(0, v3.T - 55);
       col.rvp += (rvpMix - col.rvp) * Math.min(1, dt / 150);
 
       // ---------- product routing, tanks, slop
-      var offspec = (v3.b * 100 > R.tank.bswSpec) || (col.rvp > R.rvpSpec + 0.3);
+      var offspec = (v3.b * 100 > R.tank.bswSpec) || (col.rvp > R.rvpSpec + 0.3) || (col.h2s > 14);
       if (s.route === 'AUTO') s.routeNow = offspec ? 'SLOP' : 'TANK'; else s.routeNow = s.route;
       var tk = s.tank, sl = s.slop;
       if (s.routeNow === 'TANK') {
@@ -828,7 +953,7 @@
       sl.v += (dSC + dV1 + dHT + dV3) * h;
       if (slopRet > 0) sl.v = Math.max(0, sl.v - slopRet * h);
       s.flows = { qSC: qSC, q101: q101, qHT: qHT, qBH: qBH, q103: q103, qM: qM, qCin: qCin, qDir: qDir, q105: q105, qHX: qHX, q106: q106,
-                  gSC: gasOutSC, g101: gasOut101, gHT: gasOutHT, gCol: gasOutC, g103: gasOut103, qSCw: rSC.qw, q102w: r1.qw, q104w: r2.qw, q107w: r3.qw, drains: dSC + dV1 + dHT + dV3, duty2: duty2, Qreb: Qreb, heatHO: heatHO, heatHT: heatHT, fuel: fuelSup, disp: 0 };
+                  gSC: gasOutSC, g101: gasOut101, gHT: gasOutHT, gCol: gasOutC, g103: gasOut103, qSCw: rSC.qw, q102w: r1.qw, q104w: r2.qw, q107w: r3.qw, drains: dSC + dV1 + dHT + dV3, duty2: duty2, Qreb: Qreb, qByC: 0, n2eff: n2eff, cSt: cSt, cBy: cBy, fcb: fcb, heatHO: heatHO, heatHT: heatHT, fuel: fuelSup, disp: 0 };
 
       // ---------- export
       var nExp = (s.pumps['P-201A'] === 'RUNNING' ? 1 : 0) + (s.pumps['P-201B'] === 'RUNNING' ? 1 : 0);
@@ -847,6 +972,21 @@
       s.exp.q = qe; tk.v = clamp(tk.v - qe * h, 0, R.tank.cap);
       P.kpi.exportedM3 += qe * h;
       var tkLvl = tk.v / R.tank.cap * 100;
+      // ---------- TK-410 cold vent to LP flare (PVRV +35 / -3 mbarg)
+      var lpf = s.lpf, ventOpen = s.hv['VENT-410'] / 100;
+      var netVap = (s.routeNow === 'TANK' ? q106 : 0) - qe + 0.5 * q106 * Math.max(0, v3.T - 50) / 10 + 4 * scO * (tk.bsw > 0 ? 1 : 0);
+      var Peq = lpf.P * 1000 + 2 + netVap / (60 * scL * Math.max(ventOpen, 0.0005));
+      Peq = clamp(Peq, -40, 120);
+      tk.P += (Peq - tk.P) * Math.min(1, dt / 20);
+      tk.lift = tk.P > 35; tk.vac = tk.P < -3;
+      if (tk.lift) { tk.P = Math.min(tk.P, 38); if (!tk.liftCnt) { tk.liftCnt = true; P.kpi.psvLifts++; P.kpi.ventSec += dt; logEvt('ALM', 'TK-410 PVRV lifted: hydrocarbon vapour to atmosphere'); } } else tk.liftCnt = false;
+      if (tk.vac) tk.P = Math.max(tk.P, -4);
+      var ventQ = Math.max(0, netVap) * ventOpen;
+      if (s.tank.lift) ventQ = 0;
+      lpf.flow = ventQ;
+      if (lpf.pilot === 'ON' && s.hazard.lpOut) lpf.pilot = 'OUT';
+      lpf.P += ((0.008 + 0.00004 * lpf.flow) - lpf.P) * Math.min(1, dt / 20);
+      if (lpf.pilot === 'OUT' && lpf.flow > 50) P.kpi.ventSec += dt;
 
       // ---------- produced water
       var w = s.water, wIn = rSC.qw + r1.qw + r2.qw + r3.qw;
@@ -904,10 +1044,10 @@
         if (run && (f.vib >= 11 || f.seal >= 1)) { s.pumps[p] = 'TRIPPED'; P.kpi.tripCount++; logEvt('ALM', p + ' tripped: ' + (f.seal >= 1 ? 'mechanical seal failure' : 'vibration high-high')); if (p !== 'P-501') autoStart(p.slice(0, 5), p); }
       });
       ['P-101A', 'P-101B'].forEach(function (p) {
-        if (s.pumps[p] === 'RUNNING' && (pv('LT-103') < 8 || !s.power.on)) { s.pumps[p] = 'TRIPPED'; P.kpi.tripCount++; logEvt('ALM', p + ' tripped: ' + (!s.power.on ? 'power loss' : 'V-102 level low-low (dry run)')); autoStart('P-101', p); }
+        if (s.pumps[p] === 'RUNNING' && (pv('LT-103') < 8 || !s.power.on)) { s.pumps[p] = 'TRIPPED'; P.kpi.tripCount++; logEvt('ALM', p + ' tripped: ' + (!s.power.on ? 'power loss' : 'HT-200 level low-low (dry run)')); autoStart('P-101', p); }
       });
       ['P-201A', 'P-201B'].forEach(function (p) {
-        if (s.pumps[p] === 'RUNNING' && (tkLvl < 4 || !s.power.on)) { s.pumps[p] = 'TRIPPED'; P.kpi.tripCount++; logEvt('ALM', p + ' tripped: ' + (!s.power.on ? 'power loss' : 'T-101 low-low level')); autoStart('P-201', p); }
+        if (s.pumps[p] === 'RUNNING' && (tkLvl < 4 || !s.power.on)) { s.pumps[p] = 'TRIPPED'; P.kpi.tripCount++; logEvt('ALM', p + ' tripped: ' + (!s.power.on ? 'power loss' : 'TK-410 low-low level')); autoStart('P-201', p); }
       });
       ['P-301A', 'P-301B'].forEach(function (p) { if (s.pumps[p] === 'RUNNING' && !s.power.on) { s.pumps[p] = 'TRIPPED'; autoStart('P-301', p); } });
       ['P-401A', 'P-401B'].forEach(function (p) { if (s.pumps[p] === 'RUNNING' && !s.power.on) s.pumps[p] = 'TRIPPED'; });
@@ -923,8 +1063,8 @@
         else if (s.esd.level > 0) bt('ho', 'HO-1 tripped: PSD/ESD');
       }
       if (ht.burner !== 'OFF' && ht.burner !== 'TRIPPED') {
-        if (ht.T >= 105) bt('ht', 'E-103 tripped: V-102 temperature high-high');
-        else if (pv('LT-103') < 12) bt('ht', 'E-103 tripped: V-102 level low-low');
+        if (ht.T >= 105) bt('ht', 'E-103 tripped: HT-200 temperature high-high');
+        else if (pv('LT-103') < 12) bt('ht', 'E-103 tripped: HT-200 level low-low');
         else if (!fgOK) bt('ht', 'E-103 tripped: fuel gas pressure low');
         else if (s.esd.level > 0) bt('ht', 'E-103 tripped: PSD/ESD');
       }
@@ -946,7 +1086,7 @@
         s.esd.level = level; s.esd.reset = false;
         if (level === 1) P.kpi.psdCount++; else P.kpi.esdCount++;
         logEvt('ESD', (level === 1 ? 'PSD' : 'ESD-1') + ' activated: ' + cause);
-        s.esdv.cmd = 0;
+        s.esdv.cmd = 0; s.horn = true;
         if (s.ho.burner !== 'OFF') s.ho.burner = 'TRIPPED';
         if (s.ht.burner !== 'OFF') s.ht.burner = 'TRIPPED';
         if (level === 2) {
@@ -955,21 +1095,72 @@
         }
       }
     }
+    // ---- fire and gas system: leak sources, detector model, 2oo2 voting with degradation on override/fault
+    function fgsStep(dt) {
+      var g = s.fgs, Z, k;
+      // automatic sources linked to the process
+      g.auto = {};
+      if (s.tank.lift) g.auto['Z4:h2s'] = 0.004 * s.col.h2s;
+      FG_ZONES.forEach(function (zz) {
+        Z = zz[0];
+        var c = g.c[Z];
+        c.gas += (((g.src[Z + ':gas'] || 0) + (g.auto[Z + ':gas'] || 0)) - 0.004 * c.gas) * dt; c.gas = Math.max(0, c.gas);
+        c.h2s += (((g.src[Z + ':h2s'] || 0) + (g.auto[Z + ':h2s'] || 0)) - 0.004 * c.h2s) * dt; c.h2s = Math.max(0, c.h2s);
+        c.fire += ((g.fire[Z] ? 1 : 0) - c.fire) * Math.min(1, dt / 15);
+      });
+      Object.keys(g.resp).forEach(function (zr0) {
+        if (g.resp[zr0] <= s.t) {
+          var kd = g.respKind[zr0]; delete g.resp[zr0];
+          if (kd === 'fire') { delete g.fire[zr0]; logEvt('OP', 'Fire in ' + zr0 + ' extinguished by the fire team'); }
+          else { delete g.src[zr0 + ':gas']; delete g.src[zr0 + ':h2s']; logEvt('OP', 'Leak in ' + zr0 + ' isolated by the field team'); }
+        }
+      });
+      // overrides auto-expire
+      Object.keys(g.ovr).forEach(function (id) { if (g.ovr[id] <= s.t) { delete g.ovr[id]; logEvt('F&G', 'Override on ' + id + ' expired automatically (1 h limit): detector back in service'); } });
+      Object.keys(s.ceByp).forEach(function (id) { if (s.ceByp[id] <= s.t) { delete s.ceByp[id]; logEvt('F&G', 'SIS bypass on ' + id + ' expired automatically (1 h limit)'); } });
+      Object.keys(g.det).forEach(function (id) { var d = g.det[id]; if (d.fault && d.until && d.until <= s.t) { d.fault = null; d.until = 0; d.ft = 0; } });
+      FG_ZONES.forEach(function (zz) {
+        Z = zz[0];
+        FG_KEYS.forEach(function (k) {
+          var T0 = FG_TYPES[k], zr = g.z[Z][k], use = [], anyFault = false;
+          ['A', 'B'].forEach(function (p) {
+            var d = g.det[T0.pre + '-' + Z + '-' + p], base = g.c[Z][k] * (k === 'fire' ? 100 : 1);
+            var v = d.k * base;
+            if (d.fault === 'spike') v = 0.75 * T0.max; else if (d.fault === 'fail') v = 0;
+            else if (d.fault === 'drift') { d.ft += dt; v = Math.min(0.5 * T0.max, d.ft * 0.02 * T0.max) + v; }
+            d.val = Math.min(T0.max, Math.max(0, v));
+            if (d.fault === 'fail') anyFault = true;
+            if (!g.ovr[d.id] && d.fault !== 'fail') use.push(d);
+          });
+          zr.fault = anyFault;
+          zr.blind = use.length === 0;
+          zr.vote = use.length >= 2 ? '2oo2' : (use.length === 1 ? '1oo1 (degraded)' : 'BLIND');
+          zr.low = use.some(function (d) { return d.val >= T0.lo; });
+          zr.high = use.some(function (d) { return d.val >= T0.hi; });
+          zr.conf = use.length > 0 && use.every(function (d) { return d.val >= T0.hi; });
+          if (zr.conf && !g.firstHigh) g.firstHigh = { t: s.t, zone: Z, type: k };
+        });
+      });
+    }
+    function fgsActive() {
+      var out = [];
+      FG_ZONES.forEach(function (zz) { FG_KEYS.forEach(function (k) { var r = s.fgs.z[zz[0]][k]; if (r.conf || r.high) out.push(FG_TYPES[k].name + ' ' + zz[0]); }); });
+      return out;
+    }
     function safety(dt) {
       var t = P.tagTable;
-      if (s.hazard.gas) s.hazard.gasTimer += dt;
-      if (s.esd.level < 2 && s.hazard.fire) raiseESD(2, 'Fire detection confirmed');
-      if (s.hazard.gas && s.esd.level < 2 && s.hazard.autoAfter && s.hazard.gasTimer > s.hazard.autoAfter) raiseESD(2, 'Gas detection confirmed (auto)');
+      fgsStep(dt);
       if (s.esd.level < 2) {
-        if (t['PT-001'].v >= 15.0) raiseESD(1, 'PSHH-001 SC-101 pressure HIHI');
-        if (t['LT-001'].v >= 90) raiseESD(1, 'LSHH-001 SC-101 level HIHI');
-        if (t['PT-101'].v >= 8.5) raiseESD(1, 'PSHH-101 V-101 pressure HIHI');
-        if (t['LT-101'].v >= 90) raiseESD(1, 'LSHH-101 V-101 level HIHI');
-        if (t['LT-103'].v >= 92) raiseESD(1, 'LSHH-103 V-102 level HIHI');
-        if (t['PT-102'].v >= 4.5) raiseESD(1, 'PSHH-102 V-102 pressure HIHI');
-        if (t['PT-401'].v >= 1.4) raiseESD(1, 'PSHH-401 flare header pressure HIHI');
-        if (t['LT-401'].v >= 85) raiseESD(1, 'LSHH-401 FKOD level HIHI (liquid carry-over to flare)');
-        if (t['LT-201'].v >= 95) raiseESD(1, 'LSHH-201 T-101 level HIHI');
+        CAUSES.forEach(function (c) {
+          if (s.ceByp[c[0]] !== undefined) return;
+          if (c[4](t, s)) raiseESD(c[3], c[0] + ' ' + c[2]);
+        });
+        FG_ZONES.forEach(function (zz) {
+          FG_KEYS.forEach(function (k) {
+            var r = s.fgs.z[zz[0]][k];
+            if (r.conf) raiseESD(2, (k === 'fire' ? 'FF' : k === 'gas' ? 'GHH' : 'SHH') + '-' + zz[0] + ' ' + FG_TYPES[k].name + ' confirmed (' + r.vote + ') in ' + zz[0]);
+          });
+        });
       }
     }
 
@@ -1074,16 +1265,16 @@
         case 'hv': if (s.hv[id] !== undefined) { s.hv[id] = clamp(+value, 0, 100); logEvt('OP', id + ' hand valve -> ' + s.hv[id] + '%'); } else { ok = false; msg = 'Unknown valve'; } break;
         case 'auto': s.auto[id] = !!value; logEvt('OP', id + ' standby auto-start ' + (value ? 'ARMED' : 'DISARMED')); break;
         case 'well': if (s.wells[id]) { s.wells[id].open = !!value; logEvt('OP', id + (value ? ' opened' : ' shut in')); } break;
-        case 'flareIgnite': if (s.fk.v / C.fkod.cap > 0.9) return { ok: false, msg: 'FKOD level too high' }; s.flare.pilot = 'ON'; logEvt('OP', 'Flare pilot re-ignited'); break;
+        case 'flareIgnite': if (id === 'LP') { s.lpf.pilot = 'ON'; if (s.hazard) s.hazard.lpOut = false; logEvt('OP', 'LP flare pilot re-ignited'); break; } if (s.fk.v / C.fkod.cap > 0.9) return { ok: false, msg: 'FKOD level too high' }; s.flare.pilot = 'ON'; logEvt('OP', 'Flare pilot re-ignited'); break;
         case 'wcSet': s.well.wc = clamp(+value, 0, 0.8); break;
         case 'rateSet': s.well.liquidRate = clamp(+value, 0, 900); break;
         case 'iaStart': s.ia[id === 'IAC-B' ? 'B' : 'A'] = 'RUNNING'; logEvt('OP', id + ' started'); break;
         case 'iaStop': s.ia[id === 'IAC-B' ? 'B' : 'A'] = 'STOPPED'; break;
         case 'power':
-          if (value) { s.power.blk = false; s.power.uf = false; s.power.ovT = 0; if (!['G-1', 'G-2', 'G-3'].some(function (g) { return s.gen[g] === 'RUNNING'; })) s.gen['G-1'] = 'RUNNING'; } else s.power.blk = true;
+          if (value) { s.power.blk = false; s.power.uf = false; s.power.ovT = 0; if (!['G-1', 'G-2'].some(function (g) { return s.gen[g] === 'RUNNING'; })) s.gen['G-1'] = 'RUNNING'; } else s.power.blk = true;
           logEvt('OP', 'Main power ' + (value ? 'restored' : 'lost')); break;
         case 'shedReset':
-          if (s.power.cap < s.power.demand + 350 * Math.max(scL, 0.3)) return { ok: false, msg: 'Not enough generation: start G-3 first' };
+          if (s.power.cap < s.power.demand + 350 * Math.max(scL, 0.3)) return { ok: false, msg: 'Not enough generation: start the stopped generator first' };
           s.power.shed = false; s.power.ovT = 0; logEvt('OP', 'Load shedding reset'); break;
         case 'choke': if (s.wells[id]) { s.wells[id].choke = clamp(+value, 0, 100); logEvt('OP', id + ' choke -> ' + s.wells[id].choke + '%'); } break;
         case 'wellTest': s.test.well = value ? id : null; logEvt('OP', value ? id + ' lined up to test separator' : 'Well test stopped'); break;
@@ -1094,8 +1285,38 @@
           s.lact.prove = 120; logEvt('OP', 'LACT meter proving started (120 s)'); break;
         case 'lactSample': logEvt('FIELD', 'Lab result on LACT composite sample: BS&W ' + s.lact.bsw.toFixed(2) + ' %, density 848 kg/m3'); s.lact.samp = 5; s.field.done['LACT-SAMP'] = s.t; break;
         case 'backwash': s.wt.back = 300; logEvt('OP', 'Hydrocyclone backwash started (5 min)'); break;
-        case 'skim': s.wt.skim = 300; logEvt('OP', 'T-301 skimming started (5 min)'); break;
+        case 'skim': s.wt.skim = 300; logEvt('OP', 'TK-420 skimming started (5 min)'); break;
         case 'ambient': C.ambient = clamp(+value, -10, 55); TAMB = C.ambient; logEvt('OP', 'Ambient temperature base -> ' + C.ambient + ' degC'); break;
+        case 'fgKey':
+          s.fgs.key = !!value; logEvt('F&G', 'F&G inhibit key switch -> ' + (value ? 'OVERRIDE (key inserted and turned, logged)' : 'NORMAL (key removed)'));
+          if (value) P.kpi.ovrCount = (P.kpi.ovrCount || 0); break;
+        case 'fgOvr':
+          if (!s.fgs.det[id]) return { ok: false, msg: 'Unknown detector' };
+          if (value) {
+            if (!s.fgs.key) return { ok: false, msg: 'Inhibit key switch is not in OVERRIDE: turn the key first' };
+            s.fgs.ovr[id] = s.t + FG_EXPIRE; P.kpi.ovrCount = (P.kpi.ovrCount || 0) + 1;
+            var dd = s.fgs.det[id]; if (!s.ptw[dd.zone] && !s.ptw[id]) P.kpi.ovrNoPtw = (P.kpi.ovrNoPtw || 0) + 1;
+            logEvt('F&G', 'OVERRIDE applied on ' + id + ' (auto-expires in 60 min). Zone ' + dd.zone + ' ' + FG_TYPES[dd.type].name + ' voting degraded');
+          } else { delete s.fgs.ovr[id]; logEvt('F&G', 'De-override: ' + id + ' returned to service'); }
+          break;
+        case 'fgOvrZone':
+          if (value && !s.fgs.key) return { ok: false, msg: 'Inhibit key switch is not in OVERRIDE: turn the key first' };
+          Object.keys(s.fgs.det).forEach(function (k2) { var d2 = s.fgs.det[k2]; if (d2.zone === id) { if (value) { s.fgs.ovr[k2] = s.t + FG_EXPIRE; } else delete s.fgs.ovr[k2]; } });
+          if (value) P.kpi.ovrCount = (P.kpi.ovrCount || 0) + 1;
+          logEvt('F&G', (value ? 'OVERRIDE applied on ALL detectors of zone ' : 'De-override of ALL detectors of zone ') + id); break;
+        case 'fgDeoverrideAll': s.fgs.ovr = {}; s.ceByp = {}; logEvt('F&G', 'All F&G overrides and SIS bypasses removed (de-override)'); break;
+        case 'ceByp':
+          if (!CAUSES.some(function (c) { return c[0] === id; })) return { ok: false, msg: 'Unknown cause' };
+          if (value) {
+            if (!s.fgs.key) return { ok: false, msg: 'Inhibit key switch is not in OVERRIDE: turn the key first' };
+            s.ceByp[id] = s.t + FG_EXPIRE; P.kpi.ovrCount = (P.kpi.ovrCount || 0) + 1; logEvt('F&G', 'SIS BYPASS applied on ' + id + ' (auto-expires in 60 min)');
+          } else { delete s.ceByp[id]; logEvt('F&G', 'SIS bypass removed from ' + id); }
+          break;
+        case 'hazardResp':
+          if (!s.fgs.z[id]) return { ok: false, msg: 'Unknown zone' };
+          s.fgs.resp[id] = s.t + (value === 'fire' ? 120 : 90); s.fgs.respKind = s.fgs.respKind || {}; s.fgs.respKind[id] = value;
+          logEvt('OP', (value === 'fire' ? 'Fire team dispatched to ' : 'Leak isolation team dispatched to ') + id + ' (estimated ' + (value === 'fire' ? '2 min' : '90 s') + ')'); break;
+        case 'hornReset': s.horn = false; logEvt('OP', 'General alarm horn silenced'); break;
         case 'ptw': return permit(id, value);
         case 'shelve':
           if (!P.alarms[id]) return { ok: false, msg: 'Unknown alarm' };
@@ -1120,6 +1341,11 @@
       }
       if (!s.power.on) return r(false, 'No power');
       if (s.ptw[id]) return r(false, 'Isolated under ' + s.ptw[id].no);
+      if (id === 'N2-PKG') {
+        if (s.n2.pkg === 'TRIPPED') return r(false, 'Trip active - reset first');
+        if (s.n2.pkg === 'STOPPED') { s.n2.pkg = 'STARTING'; s.n2.cd = 30; logEvt('OP', 'N2 package start sequence (30 s)'); }
+        return r(true);
+      }
       if (id === 'HO-1') {
         if (s.esd.level > 0) return r(false, 'ESD/PSD active');
         if (s.ho.burner === 'TRIPPED') return r(false, 'Trip active - reset first');
@@ -1131,15 +1357,15 @@
         if (s.esd.level > 0) return r(false, 'ESD/PSD active');
         if (s.ht.burner === 'TRIPPED') return r(false, 'Trip active - reset first');
         if (s.fg.P < 2.5) return r(false, 'Fuel gas pressure low (PT-902 below 2.5 barg)');
-        if (pv('LT-103') < 20) return r(false, 'V-102 level too low (>20%)');
+        if (pv('LT-103') < 20) return r(false, 'HT-200 level too low (>20%)');
         if (s.ht.burner === 'OFF') { s.ht.burner = 'PURGE'; s.ht.purge = 30; logEvt('OP', 'E-103 purge started (30 s)'); }
         return r(true);
       }
       if (TRIPS[id]) {
         if (s.pumps[id] === 'TRIPPED') return r(false, 'Trip active - reset first');
         if (s.esd.level > 1 && id !== 'P-401A' && id !== 'P-401B') return r(false, 'ESD-1 active');
-        if (/^P-101/.test(id) && pv('LT-103') < 15) return r(false, 'V-102 level too low (>15%)');
-        if (/^P-201/.test(id) && pv('LT-201') < 8) return r(false, 'T-101 level too low (>8%)');
+        if (/^P-101/.test(id) && pv('LT-103') < 15) return r(false, 'HT-200 level too low (>15%)');
+        if (/^P-201/.test(id) && pv('LT-201') < 8) return r(false, 'TK-410 level too low (>8%)');
         if (s.power.shed && (/^P-301/.test(id) || id === 'P-501')) return r(false, 'Load shedding active: reset it after generation is restored');
         if (s.pf[id] && s.pf[id].fail) { logEvt('ALM', id + ' failed to start: motor fault'); return r(false, 'Failed to start: motor fault. Isolate and repair.'); }
         s.pumps[id] = 'RUNNING'; logEvt('OP', id + ' started'); return r(true);
@@ -1148,6 +1374,7 @@
     }
     function stopEquip(id) {
       if (/^G-/.test(id) && s.gen[id] !== undefined) s.gen[id] = 'STOPPED';
+      else if (id === 'N2-PKG') s.n2.pkg = 'STOPPED';
       else if (id === 'HO-1') s.ho.burner = 'OFF'; else if (id === 'E-103') s.ht.burner = 'OFF';
       else if (s.pumps[id] !== undefined) s.pumps[id] = 'STOPPED';
       logEvt('OP', id + ' stopped');
@@ -1157,23 +1384,23 @@
       var ok = true, msg = '';
       if (/^G-/.test(id) && s.gen[id] === 'TRIPPED') s.gen[id] = 'STOPPED';
       else if (id === 'HO-1' && s.ho.burner === 'TRIPPED') { if (s.esd.level > 0) { ok = false; msg = 'ESD/PSD active'; } else if (s.ho.T >= 215) { ok = false; msg = 'Hot oil still too hot'; } else s.ho.burner = 'OFF'; }
-      else if (id === 'E-103' && s.ht.burner === 'TRIPPED') { if (s.esd.level > 0) { ok = false; msg = 'ESD/PSD active'; } else if (s.ht.T >= 100) { ok = false; msg = 'V-102 still too hot'; } else s.ht.burner = 'OFF'; }
+      else if (id === 'E-103' && s.ht.burner === 'TRIPPED') { if (s.esd.level > 0) { ok = false; msg = 'ESD/PSD active'; } else if (s.ht.T >= 100) { ok = false; msg = 'HT-200 still too hot'; } else s.ht.burner = 'OFF'; }
+      else if (id === 'N2-PKG' && s.n2.pkg === 'TRIPPED') s.n2.pkg = 'STOPPED';
       else if (s.pumps[id] === 'TRIPPED') s.pumps[id] = 'STOPPED';
       if (ok) logEvt('OP', id + ' trip reset');
       return { ok: ok, msg: msg };
     }
     function resetESD() {
       var t = P.tagTable, blockers = [];
-      if (s.hazard.fire) blockers.push('Fire detection still active');
-      if (s.hazard.gas) blockers.push('Gas detection still active');
-      if (t['PT-001'].v >= 14.5) blockers.push('SC-101 pressure still high');
-      if (t['LT-001'].v >= 88) blockers.push('SC-101 level still high');
-      if (t['PT-101'].v >= 8.0) blockers.push('V-101 pressure still high');
-      if (t['LT-101'].v >= 88) blockers.push('V-101 level still high');
-      if (t['LT-103'].v >= 90) blockers.push('V-102 level still high');
+      fgsActive().forEach(function (x) { blockers.push(x + ' detection still active (clear the hazard first)'); });
+      if (t['PT-001'].v >= 14.5) blockers.push('V-001 pressure still high');
+      if (t['LT-001'].v >= 88) blockers.push('V-001 level still high');
+      if (t['PT-101'].v >= 8.0) blockers.push('V-100 pressure still high');
+      if (t['LT-101'].v >= 88) blockers.push('V-100 level still high');
+      if (t['LT-103'].v >= 90) blockers.push('HT-200 level still high');
       if (t['PT-401'].v >= 1.2) blockers.push('Flare header pressure still high');
       if (t['LT-401'].v >= 80) blockers.push('FKOD level still high');
-      if (t['LT-201'].v >= 93) blockers.push('T-101 level still high');
+      if (t['LT-201'].v >= 93) blockers.push('TK-410 level still high');
       if (blockers.length) return { ok: false, msg: blockers[0] };
       s.esd.level = 0; s.esd.causes = []; s.esd.reset = true; s.bdv = false;
       logEvt('ESD', 'ESD/PSD reset by operator');
@@ -1188,6 +1415,14 @@
     P.activeAlarms = function () {
       return Object.keys(P.alarms).map(function (k) { return P.alarms[k]; }).filter(function (a) { return a.state !== 'NORMAL' && a.state !== 'SHELVED'; })
         .sort(function (a, b) { return a.pr - b.pr || b.since - a.since; });
+    };
+    P.FG_ZONES = FG_ZONES; P.FG_TYPES = FG_TYPES; P.FG_KEYS = FG_KEYS; P.EFFECTS = EFFECTS; P.fgsActive = fgsActive;
+    P.CE = function () {
+      var rows = [];
+      CAUSES.forEach(function (c) { rows.push({ id: c[0], tag: c[1], desc: c[2], level: c[3], kind: 'process', vote: '1oo1', byp: s.ceByp[c[0]] !== undefined, active: c[4](P.tagTable, s) }); });
+      FG_ZONES.forEach(function (zz) { FG_KEYS.forEach(function (k) { var r = s.fgs.z[zz[0]][k]; rows.push({ id: (k === 'fire' ? 'FF' : k === 'gas' ? 'GHH' : 'SHH') + '-' + zz[0], tag: FG_TYPES[k].pre + '-' + zz[0], desc: FG_TYPES[k].name + ' confirmed in ' + zz[0] + ' (' + zz[1] + ')', level: 2, kind: 'fg', vote: r.vote, byp: false, active: r.conf }); }); });
+      rows.push({ id: 'PSD-PB', tag: 'HS-PSD', desc: 'Manual PSD pushbutton', level: 1, kind: 'manual', vote: '1oo1', active: false }, { id: 'ESD-PB', tag: 'HS-ESD', desc: 'Manual ESD-1 pushbutton', level: 2, kind: 'manual', vote: '1oo1', active: false });
+      return rows;
     };
     P.ALARM_DEFS = ALARM_DEFS; P.LOOP_DEFS = LOOP_DEFS; P.HAND = HAND;
     P.snapshot = function () { return JSON.stringify({ s: s, loops: P.loops, alarms: P.alarms, kpi: P.kpi }); };
@@ -1210,45 +1445,45 @@
         events: [],
         objectives: [{ text: 'Keep all P1 alarms clear for 30 min', check: function (P, s, el) { return el > 1800 && P.kpi.alarmSecP1 < 1; } }] },
       { id: 'slug-arrival', title: 'Slug arrival at the slug catcher', difficulty: 'Intermediate', duration: 1500, init: 'normal',
-        desc: 'A liquid slug arrives from the wells. Use SC-101 as a buffer and protect the downstream train.',
-        brief: 'At t+1 min a liquid slug (+140%) enters SC-101 for 4 minutes. AUTO control pushes the slug straight into V-101. Take LIC-001 to manual (about 40%) so SC-101 absorbs it, open LIC-002 (about 80%) to keep the water interface down, then return both to AUTO. Keep SC-101 below 80% and V-101 below 60%.',
+        desc: 'A liquid slug arrives from the wells. Use V-001 as a buffer and protect the downstream train.',
+        brief: 'At t+1 min a liquid slug (+140%) enters V-001 for 4 minutes. AUTO control pushes the slug straight into V-100. Take LIC-001 to manual (about 40%) so V-001 absorbs it, open LIC-002 (about 80%) to keep the water interface down, then return both to AUTO. Keep V-001 below 80% and V-100 below 60%.',
         events: [{ t: 60, msg: 'Slug detected at the inlet', run: function (P, s) { s.well.slug = 1.4; } }, { t: 300, msg: 'Slug passed', run: function (P, s) { s.well.slug = 0; } }],
         objectives: [
           { text: 'No PSD/ESD during the slug', check: function (P, s, el) { return s.esd.level > 0 ? false : (el > 900 ? true : 'open'); } },
-          { text: 'SC-101 level stays below 80%', check: function (P, s, el) { return P.kpi.maxLsc >= 80 ? false : (el > 900 ? true : 'open'); } },
-          { text: 'V-101 level stays below 60% (downstream protected)', check: function (P, s, el) { return P.kpi.maxL101 >= 60 ? false : (el > 900 ? true : 'open'); } }] },
+          { text: 'V-001 level stays below 80%', check: function (P, s, el) { return P.kpi.maxLsc >= 80 ? false : (el > 900 ? true : 'open'); } },
+          { text: 'V-100 level stays below 60% (downstream protected)', check: function (P, s, el) { return P.kpi.maxL101 >= 60 ? false : (el > 900 ? true : 'open'); } }] },
       { id: 'high-wc-upset', title: 'High water cut upset', difficulty: 'Intermediate', duration: 2400, init: 'normal',
         desc: 'Water cut jumps from 35% to 60%. Protect the shipping tank from off-spec crude.',
-        brief: 'Water cut rises by 25 points. Raise the demulsifier dose and heater treater temperature (TIC-102), watch the water interface controllers, and keep AUTO routing so off-spec crude diverts to slop T-102.',
+        brief: 'Water cut rises by 25 points. Raise the demulsifier dose and heater treater temperature (TIC-102), watch the water interface controllers, and keep AUTO routing so off-spec crude diverts to slop TK-430.',
         events: [{ t: 60, msg: 'Water cut increased by 25 points', run: function (P, s) { s.well.wc = Math.min(0.8, s.well.wc + 0.25); } }],
         objectives: [
-          { text: 'T-101 BS&W stays below 0.5%', check: function (P, s, el) { return s.tank.bsw > 0.5 ? false : (el > 1500 ? true : 'open'); } },
+          { text: 'TK-410 BS&W stays below 0.5%', check: function (P, s, el) { return s.tank.bsw > 0.5 ? false : (el > 1500 ? true : 'open'); } },
           { text: 'Crude BS&W (AT-101) recovered below 0.25% by 25 min', check: function (P, s, el) { var v = P.tag('AT-101').v; return (v < 0.25 && el > 600) ? true : (el > 1500 ? false : 'open'); } },
-          { text: 'Produced water tank T-301 stays below 80%', check: function (P, s, el) { return P.kpi.maxWater >= 80 ? false : (el > 1500 ? true : 'open'); } }] },
+          { text: 'Produced water tank TK-420 stays below 80%', check: function (P, s, el) { return P.kpi.maxWater >= 80 ? false : (el > 1500 ? true : 'open'); } }] },
       { id: 'transfer-pump-trip', title: 'Transfer pump P-101A trip', difficulty: 'Intermediate', duration: 1200, init: 'normal',
         desc: 'The duty transfer pump trips with standby auto-start disarmed.',
-        brief: 'P-101A trips at t+30 s and the standby auto-start is in manual. V-102 level will rise. Start P-101B, then re-arm auto-start, before V-102 reaches the PSD level.',
+        brief: 'P-101A trips at t+30 s and the standby auto-start is in manual. HT-200 level will rise. Start P-101B, then re-arm auto-start, before HT-200 reaches the PSD level.',
         events: [{ t: 30, msg: 'P-101A tripped (motor overload); standby auto-start DISARMED', run: function (P, s) { s.auto['P-101'] = false; s.pumps['P-101A'] = 'TRIPPED'; } }],
         objectives: [
           { text: 'Start P-101B', check: function (P, s, el) { return s.pumps['P-101B'] === 'RUNNING' ? true : (el > 300 ? false : 'open'); } },
-          { text: 'V-102 level never reaches 88%', check: function (P, s, el) { return P.tag('LT-103').v >= 88 ? false : (el > 700 ? true : 'open'); } },
+          { text: 'HT-200 level never reaches 88%', check: function (P, s, el) { return P.tag('LT-103').v >= 88 ? false : (el > 700 ? true : 'open'); } },
           { text: 'No PSD', check: function (P, s, el) { return P.kpi.psdCount > 0 ? false : (el > 700 ? true : 'open'); } }] },
       { id: 'heater-trip', title: 'Hot oil heater HO-1 trip', difficulty: 'Advanced', duration: 3000, init: 'normal',
         desc: 'The hot oil heater trips. Temperatures fall and crude goes off-spec.',
-        brief: 'HO-1 trips on flame failure at t+30 s. E-102 and the stripping column lose heat; BS&W and RVP climb. Reset and relight HO-1, keep routing on AUTO, and keep T-101 on spec.',
+        brief: 'HO-1 trips on flame failure at t+30 s. V-210 and the stripping column lose heat; BS&W and RVP climb. Reset and relight HO-1, keep routing on AUTO, and keep TK-410 on spec.',
         events: [{ t: 30, msg: 'HO-1 flame failure trip', run: function (P, s) { s.ho.burner = 'TRIPPED'; } }],
         objectives: [
           { text: 'Relight HO-1 and have hot oil above 180 °C', check: function (P, s, el) { return s.ho.burner === 'ON' && s.ho.T > 180 ? true : (el > 1500 ? false : 'open'); } },
-          { text: 'T-101 BS&W stays below 0.5%', check: function (P, s, el) { return s.tank.bsw > 0.5 ? false : (el > 2400 ? true : 'open'); } },
+          { text: 'TK-410 BS&W stays below 0.5%', check: function (P, s, el) { return s.tank.bsw > 0.5 ? false : (el > 2400 ? true : 'open'); } },
           { text: 'Reboiler back above 115 °C by 40 min', check: function (P, s, el) { return s.col.Treb > 115 && el > 300 ? true : (el > 2400 ? false : 'open'); } }] },
       { id: 'column-bypass', title: 'Stripping column bypass left open', difficulty: 'Intermediate', duration: 2400, init: 'normal',
-        desc: 'BV-SC is found cracked open. Un-stripped crude is reaching the tank.',
-        brief: 'BV-SC (bypass around C-101) is found 100% open after maintenance. RVP will rise. Close BV-SC, make sure crude is routed to slop while off-spec and recover RVP below spec.',
-        events: [{ t: 30, msg: 'BV-SC (C-101 bypass) found fully open', run: function (P, s) { s.hv['BV-SC'] = 100; } }],
+        desc: 'Manifold bypass gate valves GV-3 and GV-4 are found open. Un-stripped crude is reaching the tank.',
+        brief: 'Manifold bypass valves GV-3 and GV-4 (around the stripping column C-101) are found 100% open after maintenance. RVP will rise. Close both, make sure crude is routed to slop while off-spec and recover RVP below spec.',
+        events: [{ t: 30, msg: 'GV-3 / GV-4 (C-101 bypass) found fully open', run: function (P, s) { s.hv['GV-3'] = 100; s.hv['GV-4'] = 100; } }],
         objectives: [
-          { text: 'Close BV-SC', check: function (P, s, el) { return s.hv['BV-SC'] < 5 ? true : (el > 600 ? false : 'open'); } },
+          { text: 'Close GV-3 and GV-4', check: function (P, s, el) { return (s.hv['GV-3'] < 5 && s.hv['GV-4'] < 5) ? true : (el > 600 ? false : 'open'); } },
           { text: 'Crude RVP recovered below 10 psi', check: function (P, s, el) { return P.tag('AT-102').v < 10 && el > 200 ? true : (el > 1800 ? false : 'open'); } },
-          { text: 'Keep off-spec crude out of T-101 (RVP in tank feed below 10.3)', check: function (P, s, el) { return P.kpi.tankContamSec > 120 ? false : (el > 1500 ? true : 'open'); } }] },
+          { text: 'Keep off-spec crude out of TK-410 (RVP in tank feed below 10.3)', check: function (P, s, el) { return P.kpi.tankContamSec > 120 ? false : (el > 1500 ? true : 'open'); } }] },
       { id: 'instrument-air-failure', title: 'Instrument air failure', difficulty: 'Advanced', duration: 1500, init: 'normal',
         desc: 'IAC-A trips and a header leak drains instrument air; valves drift to fail-safe.',
         brief: 'IAC-A trips and the air header leaks. Valves will fail-safe below 3.5 barg. Start IAC-B quickly and stabilise the plant.',
@@ -1270,49 +1505,101 @@
           { text: 'Re-ignite the flare pilot', check: function (P, s, el) { return s.flare.pilot === 'ON' ? true : (el > 500 ? false : 'open'); } }] },
       { id: 'export-restriction', title: 'Export pump trip / pipeline restriction', difficulty: 'Intermediate', duration: 2400, init: 'normal',
         desc: 'P-201A trips and the pipeline operator cuts capacity. Avoid tank overfill.',
-        brief: 'P-201A trips at t+30 s with auto-start off. Start P-201B and manage the shipping tank; pipeline capacity falls to 40%. Keep T-101 below 93%.',
+        brief: 'P-201A trips at t+30 s with auto-start off. Start P-201B and manage the shipping tank; pipeline capacity falls to 40%. Keep TK-410 below 93%.',
         events: [{ t: 30, msg: 'P-201A tripped (motor overload); standby auto-start DISARMED', run: function (P, s) { s.auto['P-201'] = false; s.pumps['P-201A'] = 'TRIPPED'; s.tank.v = Math.max(s.tank.v, 0.88 * P.cfg.tank.cap); } },
                  { t: 600, msg: 'Pipeline operator restricts to 40%', run: function (P, s) { s.pipe.avail = 0.4; } }],
         objectives: [
           { text: 'Start P-201B', check: function (P, s, el) { return s.pumps['P-201B'] === 'RUNNING' ? true : (el > 300 ? false : 'open'); } },
-          { text: 'T-101 stays below 95% (no PSD)', check: function (P, s, el) { return P.kpi.maxTankL >= 94.5 ? false : (el > 1500 ? true : 'open'); } }] },
-      { id: 'gas-leak-esd', title: 'Gas leak — ESD-1 response', difficulty: 'Advanced', duration: 900, init: 'normal', expectESD: true,
-        desc: 'Gas detector alarms in the separator area. Make the call quickly.',
-        brief: 'Gas detection at the SC-101 / V-101 area. Confirm and press ESD-1 within 60 s of detection. Then verify inlet closed, BDV open and rotating equipment tripped.',
-        events: [{ t: 30, msg: 'Gas detected at SC-101 skid (2 of 3 detectors)', run: function (P, s) { s.hazard.gas = true; s.hazard.gasTimer = 0; } }],
+          { text: 'TK-410 stays below 95% (no PSD)', check: function (P, s, el) { return P.kpi.maxTankL >= 94.5 ? false : (el > 1500 ? true : 'open'); } }] },
+      { id: 'gas-leak-esd', title: 'Gas leak in separation area (Z2): manual ESD-1', difficulty: 'Advanced', duration: 900, init: 'normal', expectESD: true,
+        desc: 'Hydrocarbon gas builds up around V-100 / HT-200. Detectors rise slowly; make the call before 2oo2 confirmation.',
+        brief: 'A gas release starts in zone Z2. GD-Z2-A/B rise; 20 %LEL gives a pre-alarm, 60 %LEL on both detectors auto-confirms ESD-1. Verify in the F&G panel, and press ESD-1 yourself before the auto action. Then confirm inlet closed, BDV open, pumps tripped, and silence the horn.',
+        events: [{ t: 30, msg: 'Gas release in Z2', run: function (P, s) { P.fault('leak', 'Z2', { kind: 'gas', rate: 0.5 }); } }],
         objectives: [
-          { text: 'Press ESD-1 within 60 s of detection', check: function (P, s, el) { if (s.esd.level === 2) return (el - 30) <= 60 ? true : false; return el > 95 ? false : 'open'; } },
-          { text: 'Inlet ESDV-001 closed after ESD', check: function (P, s, el) { return s.esd.level === 2 && s.esdv.pos < 1 ? true : (el > 300 ? false : 'open'); } }] },
+          { text: 'Press manual ESD-1 before the gas auto-confirms', check: function (P, s, el) { if (s.esd.level === 2) return (s.esd.causes[0] || '').indexOf('Manual') === 0 ? true : false; return el > 500 ? false : 'open'; } },
+          { text: 'Inlet ESDV-001 closed after ESD', check: function (P, s, el) { return s.esd.level === 2 && s.esdv.pos < 1 ? true : (el > 500 ? false : 'open'); } },
+          { text: 'Silence the general alarm horn', check: function (P, s, el) { return s.esd.level === 2 && !s.horn ? true : (el > 600 ? false : 'open'); } }] },
+      { id: 'h2s-leak-z1', title: 'H2S release at wellhead manifold (Z1)', difficulty: 'Advanced', duration: 900, init: 'normal', expectESD: true,
+        desc: 'Sour gas leak at the inlet area. H2S detectors climb; ESD-1 on 2oo2 above 15 ppm.',
+        brief: 'H2S is leaking at the inlet manifold. HS-Z1-A/B pre-alarm at 5 ppm. Treat it as a life-safety event: initiate ESD-1 before 15 ppm on both detectors, send the leak team, and keep the plant shut down until the zone is clear.',
+        events: [{ t: 30, msg: 'H2S release in Z1', run: function (P, s) { P.fault('leak', 'Z1', { kind: 'h2s', rate: 0.1 }); } }],
+        objectives: [
+          { text: 'Initiate manual ESD-1 before 2oo2 H2S confirmation', check: function (P, s, el) { if (s.esd.level === 2) return (s.esd.causes[0] || '').indexOf('Manual') === 0 ? true : false; return el > 500 ? false : 'open'; } },
+          { text: 'Leak isolation team dispatched to Z1', check: function (P, s, el) { return s.fgs.resp['Z1'] !== undefined || (el > 200 && s.fgs.src['Z1:h2s'] === undefined) ? true : (el > 400 ? false : 'open'); } },
+          { text: 'Plant not restarted until H2S clears (no ESD reset while detectors high)', check: function (P, s, el) { return (s.esd.level === 0 && P.fgsActive().length > 0) ? false : (el > 800 ? true : 'open'); } }] },
+      { id: 'fire-z3', title: 'Fire at the air cooler (Z3): ESD-1 and emergency response', difficulty: 'Advanced', duration: 1200, init: 'normal', expectESD: true,
+        desc: 'Flame detection in the cooler/stripper area confirms and trips ESD-1.',
+        brief: 'Fire in zone Z3. Flame detectors confirm 2oo2 and ESD-1 trips automatically. Verify the C&E effects (inlet closed, burners tripped, pumps tripped, BDV open), silence the horn, dispatch the fire team and reset only after the fire is out.',
+        events: [{ t: 30, msg: 'Fire in Z3', run: function (P, s) { P.fault('fire', 'Z3'); } }],
+        objectives: [
+          { text: 'ESD-1 active within 60 s of fire', check: function (P, s, el) { return s.esd.level === 2 ? ((el - 30) <= 60) : (el > 120 ? false : 'open'); } },
+          { text: 'BDV open and burners tripped (C&E verified)', check: function (P, s, el) { return (s.bdv && s.ho.burner !== 'ON' && s.ht.burner !== 'ON') ? true : (el > 200 ? false : 'open'); } },
+          { text: 'Fire team dispatched to Z3', check: function (P, s, el) { return (el > 40 && (s.fgs.resp['Z3'] !== undefined || !s.fgs.fire['Z3'])) ? true : (el > 300 ? false : 'open'); } },
+          { text: 'Horn silenced', check: function (P, s, el) { return !s.horn && s.esd.level === 2 ? true : (el > 400 ? false : 'open'); } }] },
+      { id: 'spurious-detector', title: 'Spurious gas detector GD-Z3-A: verify, override, de-override', difficulty: 'Intermediate', duration: 1500, init: 'normal',
+        desc: 'A gas detector reads high with no leak. Do not trip the plant; investigate and manage the override properly.',
+        brief: 'GD-Z3-A shows high gas but there is no leak. 2oo2 voting holds the plant, but you are one failure from a trip. Send the field operator to Z3 to verify, then turn the inhibit key, override GD-Z3-A, remove the key. When the technician repairs it, DE-OVERRIDE the detector within 3 min.',
+        events: [{ t: 30, msg: 'GD-Z3-A reads high: spurious', run: function (P, s) { P.fault('detector', 'GD-Z3-A', { kind: 'spike' }); } },
+                 { t: 420, msg: 'Technician replaced GD-Z3-A (reading normal)', run: function (P, s) { s.fgs.det['GD-Z3-A'].fault = null; } }],
+        objectives: [
+          { text: 'Field check of zone Z3 done (confirm no leak)', check: function (P, s, el, sc) { var d = s.field.done['FG-Z3']; return (d !== undefined && d >= sc.t0) ? true : (el > 300 ? false : 'open'); } },
+          { text: 'GD-Z3-A overridden using the inhibit key', check: function (P, s, el) { return s.fgs.ovr['GD-Z3-A'] !== undefined || el > 420 ? (s.fgs.ovr['GD-Z3-A'] !== undefined || P.kpi.ovrCount > 0) : 'open'; } },
+          { text: 'No spurious ESD / PSD', check: function (P, s, el) { return (P.kpi.esdCount + P.kpi.psdCount) > 0 ? false : (el > 1200 ? true : 'open'); } },
+          { text: 'Detector de-overridden within 3 min of repair', check: function (P, s, el) { if (el < 420) return 'open'; return (s.fgs.ovr['GD-Z3-A'] === undefined) ? true : (el > 600 ? false : 'open'); } }] },
+      { id: 'n2-package-trip', title: 'N2 package trip: stripping column loses N2', difficulty: 'Intermediate', duration: 1800, init: 'normal',
+        desc: 'Without N2 the stripping column cannot remove H2S and light ends. RVP and H2S in crude rise.',
+        brief: 'The N2 package trips. Stripping gas to C-101 drops; RVP and H2S in the stripped crude climb. Make sure off-spec crude goes to slop, reset and restart the N2 package, and recover RVP below 10 psi and H2S below 12 ppm.',
+        events: [{ t: 30, msg: 'N2 package tripped', run: function (P, s) { P.fault('n2'); } }],
+        objectives: [
+          { text: 'Restart N2 package within 6 min', check: function (P, s, el) { return (el > 40 && (s.n2.pkg === 'RUNNING' || s.n2.pkg === 'STARTING')) ? true : (el > 400 ? false : 'open'); } },
+          { text: 'No off-spec crude into TK-410', check: function (P, s, el) { return P.kpi.tankContamSec > 120 ? false : (el > 1500 ? true : 'open'); } },
+          { text: 'RVP below 10 psi and H2S below 12 ppm by 25 min', check: function (P, s, el) { return (P.tagTable['AT-102'].v < 10 && P.tagTable['AT-103'].v < 12 && el > 120) ? true : (el > 1500 ? false : 'open'); } }] },
+      { id: 'tk410-vent-blocked', title: 'TK-410 cold vent blocked: PVRV lifting', difficulty: 'Intermediate', duration: 1200, init: 'normal',
+        desc: 'The cold vent line to the LP flare is closed; TK-410 vapour pressure builds.',
+        brief: 'VENT-410 is found closed after maintenance. TK-410 vapour pressure rises, the PVRV lifts to atmosphere and H2S shows up at the tank farm. Reopen the vent, check TK-410 locally and get pressure back to normal.',
+        events: [{ t: 30, msg: 'VENT-410 found closed', run: function (P, s) { P.fault('vent'); } }],
+        objectives: [
+          { text: 'Field operator checks TK-410 vent', check: function (P, s, el, sc) { var d = s.field.done['TK410-VENT']; return (d !== undefined && d >= sc.t0) ? true : (el > 400 ? false : 'open'); } },
+          { text: 'VENT-410 reopened within 5 min', check: function (P, s, el) { return (el > 40 && s.hv['VENT-410'] >= 50) ? true : (el > 330 ? false : 'open'); } },
+          { text: 'No ESD', check: function (P, s, el) { return P.kpi.esdCount > 0 ? false : (el > 900 ? true : 'open'); } },
+          { text: 'TK-410 pressure below 20 mbarg by 10 min', check: function (P, s, el) { return (P.tagTable['PT-410'].v < 20 && s.hv['VENT-410'] >= 50) ? true : (el > 800 ? false : 'open'); } }] },
+      { id: 'cooler-bypass-open', title: 'Cooler bypass BV-CL left open', difficulty: 'Beginner', duration: 1200, init: 'normal',
+        desc: 'Hot crude bypasses E-105 and reaches V-110.',
+        brief: 'BV-CL (cooler bypass to V-110) is found open after a cooler cleaning. Hot crude enters V-110, gas and RVP rise. Close the bypass and bring TT-110 below 55 degC.',
+        events: [{ t: 30, msg: 'BV-CL found open', run: function (P, s) { s.hv['BV-CL'] = 100; } }],
+        objectives: [
+          { text: 'Close BV-CL', check: function (P, s, el) { return (el > 40 && s.hv['BV-CL'] < 5) ? true : (el > 400 ? false : 'open'); } },
+          { text: 'V-110 inlet below 55 degC', check: function (P, s, el) { return (s.hv['BV-CL'] < 5 && P.tagTable['TT-110'].v < 55) ? true : (el > 1000 ? false : 'open'); } }] },
       { id: 'cold-startup', title: 'Cold start-up after shutdown', difficulty: 'Advanced', duration: 5400, init: 'cold', expectESD: true,
         desc: 'Plant is shut down and depressurised. Bring it back to stable on-spec export.',
-        brief: 'Reset ESD, open ESDV-001, start HO-1 (needs fuel gas pressure from V-101 above 2.8 barg), then E-103 once V-102 is above 20%, start P-101A, then export pump P-201A. Keep AUTO routing so off-spec crude goes to slop.',
+        brief: 'Reset ESD, open ESDV-001, start HO-1 (needs fuel gas pressure from V-100 above 2.8 barg), then E-103 once HT-200 is above 20%, start P-101A, then export pump P-201A. Keep AUTO routing so off-spec crude goes to slop.',
         events: [],
         objectives: [
           { text: 'Reset ESD and open inlet ESDV-001', check: function (P, s, el) { return s.esd.level === 0 && s.esdv.pos > 99 ? true : (el > 600 ? false : 'open'); } },
           { text: 'HO-1 firing and hot oil above 140 °C', check: function (P, s, el) { return s.ho.burner === 'ON' && s.ho.T > 140 ? true : (el > 3600 ? false : 'open'); } },
-          { text: 'E-103 firing and V-102 above 70 °C', check: function (P, s, el) { return s.ht.burner === 'ON' && s.ht.T > 70 ? true : (el > 3000 ? false : 'open'); } },
+          { text: 'E-103 firing and HT-200 above 70 °C', check: function (P, s, el) { return s.ht.burner === 'ON' && s.ht.T > 70 ? true : (el > 3000 ? false : 'open'); } },
           { text: 'Export > 300 m3/h on-spec for 5 min', check: function (P, s, el, sc) { return holdFor(sc, 'x', 300, el, s.exp.q > 300 && s.v103.b * 100 < 0.5) ? true : (el > 5000 ? false : 'open'); } }] }
 
       ,{ id: 'instrument-fault', title: 'Level transmitter LT-101 drifting', difficulty: 'Advanced', duration: 1800, init: 'normal',
-        desc: 'The V-101 level transmitter slowly drifts low while the real level climbs.',
+        desc: 'The V-100 level transmitter slowly drifts low while the real level climbs.',
         brief: 'LT-101 starts to drift low. LIC-101 will believe the vessel is emptying and close LCV-101. Spot the problem (a field level check shows the real level), take LIC-101 to manual, then isolate and repair the transmitter under a permit.',
         events: [{ t: 30, msg: 'LT-101 output starts drifting', run: function (P, s) { P.fault('inst', 'LT-101', { mode: 'DRIFT', rate: -0.04 }); } }],
         objectives: [
           { text: 'Take LIC-101 to manual within 8 min', check: function (P, s, el) { return P.loops['LIC-101'].mode === 'MAN' ? true : (el > 510 ? false : 'open'); } },
-          { text: 'True V-101 level never reaches 85%', check: function (P, s, el) { return P.tag('LT-101').tv >= 85 ? false : (el > 1500 ? true : 'open'); } },
+          { text: 'True V-100 level never reaches 85%', check: function (P, s, el) { return P.tag('LT-101').tv >= 85 ? false : (el > 1500 ? true : 'open'); } },
           { text: 'Transmitter repaired under a permit', check: function (P, s, el) { return (el > 60 && !s.inst['LT-101']) ? true : (el > 1700 ? false : 'open'); } }] }
       ,{ id: 'stuck-valve', title: 'Level control valve LCV-103 stuck', difficulty: 'Advanced', duration: 1800, init: 'normal',
         desc: 'LCV-103 sticks in position while the wells produce more.',
-        brief: 'LCV-103 on V-102 is stuck at its current position and production rises 15%. V-102 level will climb. Choke back the wells, then isolate the valve under a permit, have it repaired and bring production back.',
+        brief: 'LCV-103 on HT-200 is stuck at its current position and production rises 15%. HT-200 level will climb. Choke back the wells, then isolate the valve under a permit, have it repaired and bring production back.',
         events: [{ t: 30, msg: 'LCV-103 stuck; wells producing 15% more', run: function (P, s) { P.fault('valve', 'LCV-103'); s.well.liquidRate *= 1.15; } }],
         objectives: [
           { text: 'Choke back production within 5 min', check: function (P, s, el) { var sum = 0; for (var k in s.wells) if (s.wells[k].open) sum += s.wells[k].choke; return sum < 285 ? true : (el > 330 ? false : 'open'); } },
-          { text: 'V-102 level stays below 88%', check: function (P, s, el) { return P.tag('LT-103').tv >= 88 ? false : (el > 1500 ? true : 'open'); } },
+          { text: 'HT-200 level stays below 88%', check: function (P, s, el) { return P.tag('LT-103').tv >= 88 ? false : (el > 1500 ? true : 'open'); } },
           { text: 'LCV-103 repaired under a permit', check: function (P, s, el) { return (el > 60 && !s.valves['LCV-103'].stuck) ? true : (el > 1700 ? false : 'open'); } }] }
-      ,{ id: 'foaming', title: 'Foaming in V-101', difficulty: 'Intermediate', duration: 1800, init: 'normal',
+      ,{ id: 'foaming', title: 'Foaming in V-100', difficulty: 'Intermediate', duration: 1800, init: 'normal',
         desc: 'Foam builds in the first stage separator and carries liquid to the gas line.',
-        brief: 'Foam appears in V-101: the level reading is unreliable and liquid is carried to the FKOD and the oil. Raise the antifoam dose (V-101 chemical injection) to at least 12 ppm, keep the FKOD below 60% and recover crude BS&W.',
-        events: [{ t: 30, msg: 'Foam detected in V-101', run: function (P, s) { P.fault('foam', null, { v: 0.8 }); s.chem.af = 5; } }],
+        brief: 'Foam appears in V-100: the level reading is unreliable and liquid is carried to the FKOD and the oil. Raise the antifoam dose (V-100 chemical injection) to at least 12 ppm, keep the FKOD below 60% and recover crude BS&W.',
+        events: [{ t: 30, msg: 'Foam detected in V-100', run: function (P, s) { P.fault('foam', null, { v: 0.8 }); s.chem.af = 5; } }],
         objectives: [
           { text: 'Antifoam dose raised to 12 ppm or more within 10 min', check: function (P, s, el) { return s.chem.af >= 12 ? true : (el > 630 ? false : 'open'); } },
           { text: 'FKOD level stays below 60%', check: function (P, s, el) { return P.tag('LT-401').tv >= 60 ? false : (el > 1500 ? true : 'open'); } },
@@ -1326,11 +1613,11 @@
           { text: 'Permit issued on P-101A', check: function (P, s, el) { return (s.ptw['P-101A'] || s.pf['P-101A'].sealRate === 0) ? true : (el > 900 ? false : 'open'); } },
           { text: 'Seal repaired and permit closed', check: function (P, s, el) { return (el > 60 && s.pf['P-101A'].sealRate === 0 && !s.ptw['P-101A']) ? true : (el > 1400 ? false : 'open'); } }] }
       ,{ id: 'generator-trip', title: 'Generator G-1 trip and load shed', difficulty: 'Advanced', duration: 1500, init: 'normal',
-        desc: 'One of two running generators trips; non-essential pumps are shed.',
-        brief: 'G-1 trips; the remaining generator cannot carry the load and the system sheds P-301A/B and P-501. Start standby G-3, reset the load shedding once capacity is back and restart disposal pump P-301A. Avoid a blackout.',
+        desc: 'One of the two running generators trips; non-essential pumps are shed.',
+        brief: 'G-1 trips; G-2 alone cannot carry the load and the system sheds P-301A/B and P-501. Reset the G-1 trip, restart G-1 (60 s run-up), reset the load shedding once capacity is back and restart disposal pump P-301A. Avoid a blackout.',
         events: [{ t: 30, msg: 'G-1 tripped', run: function (P, s) { P.fault('gen', 'G-1'); } }],
         objectives: [
-          { text: 'Start G-3 within 5 min', check: function (P, s, el) { return (s.gen['G-3'] === 'RUNNING' || s.gen['G-3'] === 'STARTING') ? true : (el > 330 ? false : 'open'); } },
+          { text: 'Restart G-1 within 5 min', check: function (P, s, el) { return (s.gen['G-1'] === 'RUNNING' || s.gen['G-1'] === 'STARTING') ? true : (el > 330 ? false : 'open'); } },
           { text: 'No blackout', check: function (P, s, el) { return !s.power.on ? false : (el > 900 ? true : 'open'); } },
           { text: 'Load shed reset and P-301A running within 15 min', check: function (P, s, el) { return (!s.power.shed && s.pumps['P-301A'] === 'RUNNING') ? true : (el > 930 ? false : 'open'); } }] }
       ,{ id: 'lact-meter-drift', title: 'LACT meter factor out of tolerance', difficulty: 'Intermediate', duration: 1200, init: 'normal',
@@ -1342,8 +1629,8 @@
           { text: 'Meter error back within 0.1%', check: function (P, s, el, sc) { return (s.lact.lastProve > sc.t0 && Math.abs(s.lact.dev) < 0.001) ? true : (el > 1100 ? false : 'open'); } },
           { text: 'Take a LACT composite sample', check: function (P, s, el, sc) { var d = s.field.done['LACT-SAMP']; return (d !== undefined && d >= sc.t0) ? true : (el > 1100 ? false : 'open'); } }] }
       ,{ id: 'hydrocyclone-fouling', title: 'Hydrocyclone fouling, oil in water high', difficulty: 'Intermediate', duration: 1800, init: 'normal',
-        desc: 'Water treatment efficiency collapses and oil carries over into T-301.',
-        brief: 'The produced water hydrocyclone is fouled and oil-in-water (AT-301) is rising. Start a hydrocyclone backwash, skim T-301 and get AT-301 below 40 ppm before disposal limits are broken.',
+        desc: 'Water treatment efficiency collapses and oil carries over into TK-420.',
+        brief: 'The produced water hydrocyclone is fouled and oil-in-water (AT-301) is rising. Start a hydrocyclone backwash, skim TK-420 and get AT-301 below 40 ppm before disposal limits are broken.',
         events: [{ t: 30, msg: 'Hydrocyclone efficiency falls', run: function (P, s) { P.fault('hc', null, { v: 0.4 }); } }],
         objectives: [
           { text: 'Start the hydrocyclone backwash within 10 min', check: function (P, s, el) { return (s.wt.back > 0 || s.wt.eff > 0.6) ? true : (el > 630 ? false : 'open'); } },

@@ -2,7 +2,7 @@
   "name": "north-field-cpf-trainer",
   "version": "1.0.0",
   "private": true,
-  "description": "North Field CPF Trainer",
+  "description": "HBJF",
   "scripts": {
     "test": "node scripts/headless_test.js www/js/engine.js",
     "sync": "cap sync",

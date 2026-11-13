@@ -1,6 +1,6 @@
 {
-  "name": "North Field CPF Trainer",
-  "short_name": "North Field ",
+  "name": "HBJF",
+  "short_name": "HBJF",
   "description": "Central Processing Facility oilfield process simulator and operator trainer",
   "start_url": "./index.html",
   "scope": "./",

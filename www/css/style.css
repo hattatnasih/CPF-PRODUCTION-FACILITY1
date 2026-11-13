@@ -147,3 +147,12 @@ details.panel summary{font-weight:700;font-size:13px;cursor:pointer;padding:2px 
 .owner small{display:block;font-size:10px;font-weight:600;color:#6f8fb5;letter-spacing:.2px;line-height:1.1}
 .owner small{white-space:nowrap}
 @media (max-width:520px){.zoombar .hint{display:none}}
+
+/* F&G / ESD control-room additions */
+.r1 #fgBadge{margin-left:auto}.r1 #fgBadge+.esd{margin-left:6px}
+.safetabs .chip{font-weight:600}
+.cescroll{overflow-x:auto}.ce tr.byp td{opacity:.55;text-decoration:line-through}.ce tr.act td{background:#5a1414}.ce td.x{color:#ff9a5a}
+.bypb{padding:2px 6px;font-size:10px;border-radius:5px}.bypb.on{background:#7a5a10;color:#fff}
+.detrow b{min-width:68px;text-align:right}.detrow .status{min-width:92px;text-align:center;font-size:10px}
+.detrow button{padding:4px 7px;font-size:11px}
+.fgchip text{pointer-events:none}

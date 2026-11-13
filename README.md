@@ -1,6 +1,10 @@
-# North Field CPF Trainer
+# HBJF
 
 Offline process simulator and operator trainer for a Central Processing Facility (CPF), packaged for Android.
+
+**Process:** wellhead > oil manifold > slug catcher V-001 > shell and tube HX-1 > 1st stage separator V-100 > V-210 > heater treater HT-200 > 2 x Viking pumps P-101A/B > MF-2 manifold (GV-1 stripper in, GV-2 stripper out, GV-3 / GV-4 straight bypass) > stripping column C-101 (N2 from the N2 package) > fan cooler E-105 (bypass BV-CL to V-110) > 2nd stage separator V-110 > TK-410. Gas > FKOD V-401 > HP flare. Water > TK-420. Drains > slop tank TK-430. TK-410 cold vent > LP flare. Two generators G-1 / G-2.
+
+**Control room:** DCS mimic (P&ID with live F&G zone status), control loops, ISA-18.2 alarm management, trends, ESD / C&E matrix, Fire & Gas panel (H2S, gas, flame detectors, voting, key-switch override and de-override), field operator, permits, procedures, shift handover, 20+ training scenarios, Arabic interface option.
 App id: `com.northfield.cpftrainer`
 
 ## Get the APK (pick one)
