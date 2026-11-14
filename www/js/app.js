@@ -494,6 +494,27 @@
         outs.forEach(function (o) { o.setAttribute('stroke', fgCols[worst]); o.setAttribute('stroke-opacity', worst === 'ok' ? .45 : .95); });
       });
     });
+    // ---------- individual detector symbols (gas = circle, H2S = diamond, flame = triangle), A/B per type
+    plant.FG_ZONES.forEach(function (zz) {
+      var Z = zz[0], r0 = ZR[Z][0], sp = Math.min(20, (r0[2] - 100) / 6), n = 0, dets = [];
+      FG_KEYS_L.forEach(function (k) {
+        ['A', 'B'].forEach(function (p) {
+          var id = plant.FG_TYPES[k].pre + '-' + Z + '-' + p, cx = r0[0] + 100 + n * sp + 7, cy = r0[1] + 14; n++;
+          var g = S('g', { style: 'cursor:pointer' }); g.addEventListener('click', function () { gotoFG(Z, 'fg'); });
+          var sh = k === 'gas' ? S('circle', { cx: cx, cy: cy, r: 7 }, g) : k === 'h2s' ? S('path', { d: 'M' + cx + ',' + (cy - 8) + ' l8,8 l-8,8 l-8,-8 Z' }, g) : S('path', { d: 'M' + cx + ',' + (cy - 8) + ' l8,15 h-16 Z' }, g);
+          sh.setAttribute('stroke', '#0b141f'); sh.setAttribute('stroke-width', 1.2); sh.setAttribute('fill', fgCols.ok);
+          var ti = S('title', {}, g); ti.textContent = id; dets.push([id, k, sh, ti]);
+        });
+      });
+      upd.push(function () {
+        dets.forEach(function (d) {
+          var dd = s().fgs.det[d[0]], T0 = plant.FG_TYPES[d[1]], ov = s().fgs.ovr[d[0]] !== undefined;
+          var c = ov ? fgCols.ovr : dd.fault === 'fail' ? '#e08a3a' : dd.val >= T0.hi ? fgCols.high : dd.val >= T0.lo ? fgCols.low : fgCols.ok;
+          if (d[2].getAttribute('fill') !== c) d[2].setAttribute('fill', c);
+          d[3].textContent = d[0] + ': ' + dd.val.toFixed(1) + ' ' + T0.unit + (ov ? ' (OVERRIDDEN)' : '');
+        });
+      });
+    });
     // alarm highlight on equipment outlines
     upd.push(function () {
       var worst = {}; plant.activeAlarms().forEach(function (a) { if (a.state === 'RTN_UNACK') return; var e = ALM_EQ[a.id]; if (e && (!worst[e] || a.pr < worst[e])) worst[e] = a.pr; });

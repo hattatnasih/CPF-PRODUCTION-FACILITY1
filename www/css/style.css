@@ -156,3 +156,23 @@ details.panel summary{font-weight:700;font-size:13px;cursor:pointer;padding:2px 
 .detrow b{min-width:68px;text-align:right}.detrow .status{min-width:92px;text-align:center;font-size:10px}
 .detrow button{padding:4px 7px;font-size:11px}
 .fgchip text{pointer-events:none}
+
+/* ===== control-room hardware look ===== */
+:root{--hw1:#2b3646;--hw2:#18202c}
+button{background:linear-gradient(#2b3646,#18202c);border:1px solid #3b4a60;border-bottom-color:#0a0e14;box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 2px 0 #05080c;text-transform:none;letter-spacing:.2px}
+button:active{transform:translateY(2px);box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 0 0 #000;filter:none}
+button.primary{background:linear-gradient(#2a74c0,#174f8c);border-color:#4a95e6}
+button.go{background:linear-gradient(#1f7a49,#0f4a2a);border-color:#3fbf7c}
+button.danger,.pb.danger{background:radial-gradient(circle at 50% 35%,#e03a3a,#8a1111 70%);border:3px solid #3a0a0a;box-shadow:0 0 0 3px #c9a227,0 4px 0 #000,inset 0 2px 4px rgba(255,255,255,.3);font-weight:900;letter-spacing:1px}
+#topbar{background:linear-gradient(#17212f,#0d141e);border-bottom:2px solid #000;box-shadow:0 2px 6px rgba(0,0,0,.6)}
+.esd{border-radius:4px;font-weight:800;letter-spacing:.5px;text-shadow:0 0 6px currentColor;box-shadow:inset 0 0 8px rgba(0,0,0,.6),0 0 6px rgba(0,0,0,.5)}
+.esd.ok{background:#07230f;color:#37e26b;border:1px solid #1d7a3c}
+#alarmBanner{border-radius:4px;font-family:ui-monospace,Menlo,Consolas,monospace;letter-spacing:.3px}
+.panel{background:linear-gradient(#141c28,#101722);border:1px solid #2a384c;border-radius:6px;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+.panel h3,.panel h4{text-transform:uppercase;letter-spacing:1px;font-size:12px;color:#8fb3de}
+.status{border-radius:3px;font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:800;box-shadow:inset 0 0 6px rgba(0,0,0,.5)}
+#tabs{background:linear-gradient(#18222f,#0b1119)}
+#tabs button{border-radius:0;box-shadow:none;border-right:1px solid #0b1119;background:none}
+.chip{background:linear-gradient(#1c2837,#121b27);box-shadow:0 1px 0 #000}
+#mimicWrap{background:radial-gradient(circle at 50% 40%,#0f1a28,#070b11)}
+.ce th{background:#1a2535;text-transform:uppercase;font-size:10px;letter-spacing:.8px}
